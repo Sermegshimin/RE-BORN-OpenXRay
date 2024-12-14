@@ -26,15 +26,15 @@ public:
     {
         shared_str first;
         shared_str second;
-        //#ifdef DEBUG
-        // shared_str comment;
-        //#endif
+        // #ifdef DEBUG
+        //  shared_str comment;
+        // #endif
         Item()
             : first(nullptr), second(nullptr)
-              //#ifdef DEBUG
-              // , comment(0)
-              //#endif
-              {};
+        // #ifdef DEBUG
+        //  , comment(0)
+        // #endif
+        {};
     };
 
     using Items = xr_vector<Item>;
@@ -55,7 +55,8 @@ public:
     static void Destroy(CInifile*);
     static bool isBool(pcstr str)
     {
-        return xr_strcmp(str, "on") == 0 || xr_strcmp(str, "yes") == 0 || xr_strcmp(str, "true") == 0 || xr_strcmp(str, "1") == 0;
+        return xr_strcmp(str, "on") == 0 || xr_strcmp(str, "yes") == 0 || xr_strcmp(str, "true") == 0 ||
+            xr_strcmp(str, "1") == 0;
     }
 
 private:
@@ -74,9 +75,8 @@ private:
 public:
     CInifile(IReader* F, pcstr path = nullptr, allow_include_func_t allow_include_func = nullptr);
 
-    CInifile(pcstr fileName, bool readOnly = true,
-             bool loadAtStart = true, bool saveAtEnd = true,
-             u32 sect_count = 0, allow_include_func_t allow_include_func = nullptr);
+    CInifile(pcstr fileName, bool readOnly = true, bool loadAtStart = true, bool saveAtEnd = true, u32 sect_count = 0,
+        allow_include_func_t allow_include_func = nullptr);
 
     virtual ~CInifile();
     bool save_as(pcstr new_fname = nullptr);
@@ -87,8 +87,8 @@ public:
     pcstr fname() const noexcept { return m_file_name; }
     Sect& r_section(pcstr S) const;
     Sect& r_section(const shared_str& S) const;
-    bool line_exist(pcstr S, pcstr L)const;
-    bool line_exist(const shared_str& S, const shared_str& L)const;
+    bool line_exist(pcstr S, pcstr L) const;
+    bool line_exist(const shared_str& S, const shared_str& L) const;
     u32 line_count(pcstr S) const;
     u32 line_count(const shared_str& S) const;
     u32 section_count() const;
@@ -98,26 +98,26 @@ public:
     Root const& sections() const { return DATA; }
 
     // Generic reading templated functions
-    template<typename T>
+    template <typename T>
     T read(pcstr section, pcstr line) const;
 
-    template<typename T>
+    template <typename T>
     T read(const shared_str& section, pcstr line) const
     {
         return read<T>(section.c_str(), line);
     }
 
-    template<typename T>
+    template <typename T>
     bool try_read(T& outValue, pcstr section, pcstr line) const;
 
-    template<typename T>
+    template <typename T>
     bool try_read(T& outValue, const shared_str& section, pcstr line) const
     {
         return try_read<T>(outValue, section.c_str(), line);
     }
 
     // Returns value if it exist, or returns default value
-    template<typename T>
+    template <typename T>
     T read_if_exists(pcstr section, pcstr line, T defaultValue) const
     {
         if (line_exist(section, line))
@@ -127,14 +127,14 @@ public:
         return defaultValue;
     }
 
-    template<typename T>
+    template <typename T>
     T read_if_exists(const shared_str& section, pcstr line, T defaultValue) const
     {
         return read_if_exists<T>(section.c_str(), line, defaultValue);
     }
 
     // Returns true if value is exist and assigns it or returns false
-    template<typename T>
+    template <typename T>
     bool read_if_exists(T& outValue, pcstr section, pcstr line) const
     {
         if (line_exist(section, line))
@@ -145,14 +145,14 @@ public:
         return false;
     }
 
-    template<typename T>
+    template <typename T>
     bool read_if_exists(T& outValue, const shared_str& section, pcstr line) const
     {
         return read_if_exists(outValue, section.c_str(), line);
     }
 
     // Returns true if value or fallback value exist, crashes otherwise
-    template<typename T>
+    template <typename T>
     bool read_if_exists(T& outValue, pcstr section, pcstr line, pcstr line2, bool at_least_one = false) const
     {
         if (line_exist(section, line))
@@ -170,13 +170,14 @@ public:
         return false;
     }
 
-    template<typename T>
-    bool read_if_exists(T& outValue, const shared_str& section, pcstr line, pcstr line2, bool at_least_one = false) const
+    template <typename T>
+    bool read_if_exists(
+        T& outValue, const shared_str& section, pcstr line, pcstr line2, bool at_least_one = false) const
     {
         return read_if_exists(outValue, section.c_str(), line, line2, at_least_one);
     }
 
-    template<typename T>
+    template <typename T>
     bool try_read_if_exists(T& outValue, pcstr section, pcstr line) const
     {
         if (line_exist(section, line))
@@ -186,7 +187,7 @@ public:
         return false;
     }
 
-    template<typename T>
+    template <typename T>
     bool try_read_if_exists(T& outValue, const shared_str& section, pcstr line) const
     {
         return try_read_if_exists(outValue, section.c_str(), line);
@@ -260,7 +261,7 @@ public:
     void remove_line(pcstr S, pcstr L);
 };
 
-#define READ_IF_EXISTS(ltx, method, section, name, default_value) \
+#define READ_IF_EXISTS(ltx, method, section, name, default_value)                                                      \
     (((ltx)->line_exist(section, name)) ? ((ltx)->method(section, name)) : (default_value))
 
 // Main configuration file

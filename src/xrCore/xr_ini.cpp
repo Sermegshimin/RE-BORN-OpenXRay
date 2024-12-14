@@ -3,16 +3,27 @@
 #include "FileSystem.h"
 #include "xrCore/xr_token.h"
 
+#include "fs_internal.h"
+
+#include <functional>
+#include <regex>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+#include <iostream>
+
 XRCORE_API CInifile const* pSettings = nullptr;
 XRCORE_API CInifile const* pSettingsAuth = nullptr;
 XRCORE_API CInifile const* pSettingsOpenXRay = nullptr;
 
 #if defined(XR_PLATFORM_LINUX) || defined(XR_PLATFORM_BSD) || defined(XR_PLATFORM_APPLE)
 #include <stdint.h>
-#define MSVCRT_EINVAL	22
-#define MSVCRT_ERANGE	34
+#define MSVCRT_EINVAL 22
+#define MSVCRT_ERANGE 34
 
-#define MSVCRT_UI64_MAX   (((uint64_t)0xffffffff << 32) | 0xffffffff)
+#define MSVCRT_UI64_MAX (((uint64_t)0xffffffff << 32) | 0xffffffff)
 
 /**
  * from wine@dlls/msvcrt/string.c
@@ -21,7 +32,7 @@ XRCORE_API CInifile const* pSettingsOpenXRay = nullptr;
  * @param readOnly
  * @return
  */
-int _cdecl _i64toa_s(int64_t value, char *str, size_t size, int radix)
+int _cdecl _i64toa_s(int64_t value, char* str, size_t size, int radix)
 {
     uint64_t val;
     unsigned int digit;
@@ -71,7 +82,7 @@ int _cdecl _i64toa_s(int64_t value, char *str, size_t size, int radix)
     if (len > size)
     {
         size_t i;
-        char *p = str;
+        char* p = str;
 
         /* Copy the temporary buffer backwards up to the available number of
          * characters. Don't copy the negative sign if present. */
@@ -93,7 +104,7 @@ int _cdecl _i64toa_s(int64_t value, char *str, size_t size, int radix)
     return 0;
 }
 
-int _cdecl _ui64toa_s(uint64_t value, char *str, size_t size, int radix)
+int _cdecl _ui64toa_s(uint64_t value, char* str, size_t size, int radix)
 {
     char buffer[65], *pos;
     int digit;
@@ -131,7 +142,7 @@ int _cdecl _ui64toa_s(uint64_t value, char *str, size_t size, int radix)
     return 0;
 }
 
-LARGE_INTEGER _cdecl _atoi64(const char *str)
+LARGE_INTEGER _cdecl _atoi64(const char* str)
 {
     ULARGE_INTEGER RunningTotal = 0;
     char bMinus = 0;
@@ -158,7 +169,7 @@ LARGE_INTEGER _cdecl _atoi64(const char *str)
     return bMinus ? -RunningTotal : RunningTotal;
 }
 
-uint64_t _cdecl _strtoui64_l(const char *nptr, char **endptr, int base, locale_t locale)
+uint64_t _cdecl _strtoui64_l(const char* nptr, char** endptr, int base, locale_t locale)
 {
     BOOL negative = FALSE;
     uint64_t ret = 0;
@@ -222,29 +233,19 @@ uint64_t _cdecl _strtoui64_l(const char *nptr, char **endptr, int base, locale_t
     }
 
     if (endptr)
-        *endptr = (char*) nptr;
+        *endptr = (char*)nptr;
 
     return negative ? -ret : ret;
 }
 
-uint64_t _cdecl _strtoui64(const char *nptr, char **endptr, int base)
-{
-    return _strtoui64_l(nptr, endptr, base, NULL);
-}
+uint64_t _cdecl _strtoui64(const char* nptr, char** endptr, int base) { return _strtoui64_l(nptr, endptr, base, NULL); }
 #endif
 
-
-CInifile* CInifile::Create(pcstr fileName, bool readOnly)
-{
-    return xr_new<CInifile>(fileName, readOnly);
-}
+CInifile* CInifile::Create(pcstr fileName, bool readOnly) { return xr_new<CInifile>(fileName, readOnly); }
 
 void CInifile::Destroy(CInifile* ini) { xr_delete(ini); }
 
-bool sect_pred(const CInifile::Sect* x, pcstr val)
-{
-    return xr_strcmp(*x->Name, val) < 0;
-}
+bool sect_pred(const CInifile::Sect* x, pcstr val) { return xr_strcmp(*x->Name, val) < 0; }
 
 bool item_pred(const CInifile::Item& x, pcstr val)
 {
@@ -336,7 +337,8 @@ CInifile::CInifile(IReader* F, pcstr path, allow_include_func_t allow_include_fu
     Load(F, path, allow_include_func);
 }
 
-CInifile::CInifile(pcstr fileName, bool readOnly, bool loadAtStart, bool saveAtEnd, u32 sect_count, allow_include_func_t allow_include_func)
+CInifile::CInifile(pcstr fileName, bool readOnly, bool loadAtStart, bool saveAtEnd, u32 sect_count,
+    allow_include_func_t allow_include_func)
 {
     if (fileName && strstr(fileName, "system"))
         Msg("-----loading %s", fileName);
@@ -365,7 +367,6 @@ CInifile::CInifile(pcstr fileName, bool readOnly, bool loadAtStart, bool saveAtE
 
 CInifile::~CInifile()
 {
-    ZoneScoped;
 
     if (!m_flags.test(eReadOnly) && m_flags.test(eSaveAtEnd) && !save_as())
         Log("!Can't save inifile:", m_file_name);
@@ -382,9 +383,9 @@ static void insert_item(CInifile::Sect* tgt, const CInifile::Item& I)
     if (sect_it != tgt->Data.end() && sect_it->first.equal(I.first))
     {
         sect_it->second = I.second;
-        //#ifdef DEBUG
-        // sect_it->comment= I.comment;
-        //#endif
+        // #ifdef DEBUG
+        //  sect_it->comment= I.comment;
+        // #endif
     }
     else
         tgt->Data.insert(sect_it, I);
@@ -400,21 +401,217 @@ IC bool is_empty_line_now(IReader* F)
     return *a0 == 13 && *a1 == 10 && *a2 == 13 && *a3 == 10;
 };
 
+std::unordered_map<std::string, bool> CheckedFiles;
+
 void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_func)
 {
-    ZoneScoped;
-
     R_ASSERT(F);
     Sect* Current = nullptr;
     string4096 str;
     string4096 str2;
 
     bool bInsideSTR = false;
+    bool HasLoadedModFiles = false;
+    bool WasExecuted = false;
 
+    std::unordered_map <shared_str, std::unordered_map<std::string, std::string>> ModData; //section - key - value
+    
+    std::function<void(IReader*, pcstr)> ModLoad = [&](IReader* R, pcstr path) 
+    {
+        R_ASSERT(R);
+        Sect* ModCurrent = nullptr;
+        string4096 modstr;
+        string4096 modstr2;
+        
+        bool bInsideSTR = false;
+
+        while (!R->eof())
+        {
+            R->r_string(modstr, sizeof modstr);
+            _Trim(modstr);
+
+            pstr comm = strchr(modstr, ';');
+            pstr comm_1 = strchr(modstr, '/');
+
+            if (comm_1 && *(comm_1 + 1) == '/' && (!comm || (comm && comm_1 < comm)))
+            {
+                comm = comm_1;
+            }
+
+#ifdef DEBUG
+            pstr comment = 0;
+#endif
+            if (comm)
+            {
+                //."bla-bla-bla;nah-nah-nah"
+                char quot = '"';
+                bool in_quot = false;
+
+                pcstr q1 = strchr(str, quot);
+                if (q1 && q1 < comm)
+                {
+                    pcstr q2 = strchr(++q1, quot);
+                    if (q2 && q2 > comm)
+                        in_quot = true;
+                }
+
+                if (!in_quot)
+                {
+                    *comm = 0;
+#ifdef DEBUG
+                    comment = comm + 1;
+#endif
+                }
+            }
+
+            if (modstr[0] && modstr[0] == '!' && modstr[1] && modstr[1] == '[') // new section to overwrite?
+            {
+                u32 SectionNameStartPos = 2;
+                ModCurrent = xr_new<Sect>();
+                ModCurrent->Name = nullptr;
+                ModCurrent->Name = std::string(modstr).substr(SectionNameStartPos, strchr(modstr, ']') - modstr - SectionNameStartPos).c_str();
+            }
+            else //name = value
+            {
+                if ((ModCurrent != nullptr) && (ModCurrent->Name != nullptr))
+                {
+                    string4096 value_raw;
+                    char* name = (char*)(modstr);
+                    char* t = strchr(name, '=');
+                    if (t)
+                    {
+                        xr_strcpy(value_raw, t);
+                        bInsideSTR = _parse(modstr2, value_raw);
+                        if (bInsideSTR) // multiline str value
+                        {
+                            string4096 prevStr;
+                            xr_strcpy(prevStr, modstr2);
+
+                            bool incorrectFormat = false;
+                            const size_t prevPos = F->tell();
+                            while (bInsideSTR)
+                            {
+                                xr_strcat(value_raw, sizeof value_raw, "\r\n");
+                                string4096 str_add_raw;
+                                F->r_string(str_add_raw, sizeof str_add_raw);
+
+                                cpstr sectionNameTester = strchr(str_add_raw, '[');
+                                if (sectionNameTester)
+                                {
+                                    if (strchr(sectionNameTester, ']'))
+                                    {
+                                        // That's a new section name! This is 100% error!
+                                        incorrectFormat = true;
+                                    }
+                                }
+
+                                if (!(xr_strlen(value_raw) + xr_strlen(str_add_raw) < sizeof value_raw) || incorrectFormat)
+                                {
+                                    Msg("! Incorrect inifile format: section[%s], variable[%s]. Odd number of quotes "
+                                        "(\") found, but "
+                                        "should be even. Trimming it to the first new line.",
+                                        Current->Name.c_str(), name);
+                                    _Trim(prevStr, '\"');
+                                    xr_strcpy(modstr2, prevStr);
+                                    F->seek(prevPos);
+                                    break;
+                                }
+
+                                xr_strcat(value_raw, sizeof value_raw, str_add_raw);
+                                bInsideSTR = _parse(modstr2, value_raw);
+                                if (bInsideSTR)
+                                {
+                                    if (is_empty_line_now(F))
+                                        xr_strcat(value_raw, sizeof value_raw, "\r\n");
+                                }
+                            }
+                        }
+                    }
+                     else
+                    {
+                        _Trim(name);
+                        modstr2[0] = 0;
+                    }
+                    
+                    if (name[0] && modstr2[0])
+                    {
+                        auto field_name = strtok(modstr, "=");
+                        auto value = strtok(NULL, "=");
+                        _Trim(field_name);
+                        _Trim(value);
+
+                        ModData[(ModCurrent->Name)][field_name] = value;
+                        //xrDebug::Fatal(DEBUG_INFO, "Custom Error: section = '%s', field = '%s', str2 = '%s'", CurrentSection, field_name, value);
+                    }
+                    else
+                    {
+                        xrDebug::Fatal(DEBUG_INFO, "Wrong field detected in the mods for the file '%s'", m_file_name);
+                    }
+                    
+                }
+            }
+        }
+    };
+    
+    std::function<bool()> CheckForMods = [&]()
+    {
+        string4096 split_drive;
+        string4096 split_dir;
+        string4096 split_name;
+
+        _splitpath_s(m_file_name, split_drive, sizeof split_drive, split_dir, sizeof split_dir, split_name, sizeof split_name, NULL, 0);
+
+        std::string FilePath = std::string(split_drive) + std::string(split_dir);
+        std::string FileName = split_name;
+
+        FS_FileSet OLTX_Files; // set of files with mod prefix + FileName
+        FS.file_list(OLTX_Files, FilePath.c_str(), FS_ListFiles, ("mod_" + FileName + "_*.ltx").c_str());
+        if (!OLTX_Files.empty())
+        {
+            for (auto iter = OLTX_Files.begin(); iter != OLTX_Files.end(); ++iter)
+            {
+                std::string ModFileName = iter->name.c_str();
+                std::string FullPath = FilePath + ModFileName;
+                auto PathToMod = FullPath.c_str();    
+                
+                IReader* I = FS.r_open(PathToMod);
+                R_ASSERT3(I, "Can't open file:", ModFileName.c_str());
+
+                ModLoad(I, PathToMod);
+                
+                FS.r_close(I);
+                 
+            }
+            //CheckedFiles[m_file_name] = true;
+            return true; 
+        }
+        else
+        {
+            //CheckedFiles[m_file_name] = false;
+            return false;
+        }
+        
+        return false;
+    };
+
+    if (!WasExecuted)
+    {    
+        if (m_file_name[0])
+        {
+            //if (CheckedFiles[m_file_name])
+            //{
+                HasLoadedModFiles = CheckForMods();
+            //}
+           
+        }
+    }
+    WasExecuted = true;
+    
     while (!F->eof())
     {
         F->r_string(str, sizeof str);
         _Trim(str);
+
         pstr comm = strchr(str, ';');
         pstr comm_1 = strchr(str, '/');
 
@@ -557,8 +754,7 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                                 }
                             }
 
-                            if (!(xr_strlen(value_raw) + xr_strlen(str_add_raw) < sizeof value_raw)
-                                || incorrectFormat)
+                            if (!(xr_strlen(value_raw) + xr_strlen(str_add_raw) < sizeof value_raw) || incorrectFormat)
                             {
                                 Msg("! Incorrect inifile format: section[%s], variable[%s]. Odd number of quotes "
                                     "(\") found, but "
@@ -587,11 +783,32 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                 }
 
                 Item I;
+
                 I.first = name[0] ? name : NULL;
-                I.second = str2[0] ? str2 : NULL;
-                //#ifdef DEBUG
-                // I.comment = m_flags.test(eReadOnly)?0:comment;
-                //#endif
+
+                if (!HasLoadedModFiles)
+                {   
+                    I.second = str2[0] ? str2 : NULL;
+                }
+                else
+                {
+                    auto iter = ModData[Current->Name].find(name);
+                    
+                    if (iter != ModData[Current->Name].end())
+                    {
+                        //xrDebug::Fatal(DEBUG_INFO, "Custom Error: section = '%s', field = '%s'", CurrentSection, name);
+                        std::string NewValue = ModData[Current->Name][name];
+                        I.second = NewValue.c_str();
+                    }
+                    else
+                    {
+                        I.second = str2[0] ? str2 : NULL;
+                    }
+                }
+                
+                // #ifdef DEBUG
+                //  I.comment = m_flags.test(eReadOnly)?0:comment;
+                // #endif
 
                 if (m_flags.test(eReadOnly))
                 {
@@ -601,11 +818,11 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                 else
                 {
                     if (*I.first || *I.second
-                        //#ifdef DEBUG
-                        // || *I.comment
-                        //#endif
-                        )
-                        insert_item(Current, I);
+                        // #ifdef DEBUG
+                        //  || *I.comment
+                        // #endif
+                    )
+                    insert_item(Current, I);
                 }
             }
         }
@@ -708,7 +925,7 @@ u32 CInifile::line_count(pcstr Sname) const
 u32 CInifile::section_count() const { return DATA.size(); }
 //--------------------------------------------------------------------------------------
 CInifile::Sect& CInifile::r_section(const shared_str& S) const { return r_section(*S); }
-bool CInifile::line_exist(const shared_str& S, const shared_str& L)const { return line_exist(*S, *L); }
+bool CInifile::line_exist(const shared_str& S, const shared_str& L) const { return line_exist(*S, *L); }
 u32 CInifile::line_count(const shared_str& S) const { return line_count(*S); }
 bool CInifile::section_exist(const shared_str& S) const { return section_exist(*S); }
 //--------------------------------------------------------------------------------------
@@ -735,7 +952,9 @@ CInifile::Sect& CInifile::r_section(pcstr S) const
         // F->w_string ("shared strings:");
         // g_pStringContainer->dump(F);
         // FS.w_close (F);
-        xrDebug::Fatal(DEBUG_INFO, "Can't open section '%s' (only '%s' avail). Please attach [*.ini_log] file to your bug report", section, *(*I)->Name);
+        xrDebug::Fatal(DEBUG_INFO,
+            "Can't open section '%s' (only '%s' avail). Please attach [*.ini_log] file to your bug report", section,
+            *(*I)->Name);
     }
     return **I;
 }
@@ -968,9 +1187,9 @@ void CInifile::w_string(pcstr S, pcstr L, pcstr V, pcstr comment)
     I.first = line[0] ? line : 0;
     I.second = value[0] ? value : 0;
 
-    //#ifdef DEBUG
-    // I.comment = (comment?comment:0);
-    //#endif
+    // #ifdef DEBUG
+    //  I.comment = (comment?comment:0);
+    // #endif
     auto it = std::lower_bound(data.Data.begin(), data.Data.end(), *I.first, item_pred);
 
     if (it != data.Data.end())
@@ -1122,117 +1341,117 @@ void CInifile::remove_line(pcstr S, pcstr L)
     }
 }
 
-template<>
+template <>
 XRCORE_API pcstr CInifile::read(pcstr section, pcstr line) const
 {
     return r_string(section, line);
 }
 
-template<>
+template <>
 XRCORE_API u8 CInifile::read(pcstr section, pcstr line) const
 {
     return r_u8(section, line);
 }
 
-template<>
+template <>
 XRCORE_API u16 CInifile::read(pcstr section, pcstr line) const
 {
     return r_u16(section, line);
 }
 
-template<>
+template <>
 XRCORE_API u32 CInifile::read(pcstr section, pcstr line) const
 {
     return r_u32(section, line);
 }
 
-template<>
+template <>
 XRCORE_API s8 CInifile::read(pcstr section, pcstr line) const
 {
     return r_s8(section, line);
 }
 
-template<>
+template <>
 XRCORE_API s16 CInifile::read(pcstr section, pcstr line) const
 {
     return r_s16(section, line);
 }
 
-template<>
+template <>
 XRCORE_API s32 CInifile::read(pcstr section, pcstr line) const
 {
     return r_s32(section, line);
 }
 
-template<>
+template <>
 XRCORE_API s64 CInifile::read(pcstr section, pcstr line) const
 {
     return r_s64(section, line);
 }
 
-template<>
+template <>
 XRCORE_API float CInifile::read(pcstr section, pcstr line) const
 {
     return r_float(section, line);
 }
 
-template<>
+template <>
 XRCORE_API Fcolor CInifile::read(pcstr section, pcstr line) const
 {
     return r_fcolor(section, line);
 }
 
-template<>
+template <>
 XRCORE_API Ivector2 CInifile::read(pcstr section, pcstr line) const
 {
     return r_ivector2(section, line);
 }
 
-template<>
+template <>
 XRCORE_API Ivector3 CInifile::read(pcstr section, pcstr line) const
 {
     return r_ivector3(section, line);
 }
 
-template<>
+template <>
 XRCORE_API Ivector4 CInifile::read(pcstr section, pcstr line) const
 {
     return r_ivector4(section, line);
 }
 
-template<>
+template <>
 XRCORE_API bool CInifile::try_read(Ivector4& outValue, pcstr section, pcstr line) const
 {
     pcstr C = r_string(section, line);
     return 4 == sscanf(C, "%d,%d,%d,%d", &outValue.x, &outValue.y, &outValue.z, &outValue.w);
 }
 
-template<>
+template <>
 XRCORE_API Fvector2 CInifile::read(pcstr section, pcstr line) const
 {
     return r_fvector2(section, line);
 }
 
-template<>
+template <>
 XRCORE_API bool CInifile::try_read(Fvector2& outValue, pcstr section, pcstr line) const
 {
     pcstr C = r_string(section, line);
     return 2 == sscanf(C, "%f,%f", &outValue.x, &outValue.y);
 }
 
-template<>
+template <>
 XRCORE_API Fvector3 CInifile::read(pcstr section, pcstr line) const
 {
     return r_fvector3(section, line);
 }
 
-template<>
+template <>
 XRCORE_API Fvector4 CInifile::read(pcstr section, pcstr line) const
 {
     return r_fvector4(section, line);
 }
 
-template<>
+template <>
 XRCORE_API bool CInifile::read(pcstr section, pcstr line) const
 {
     return r_bool(section, line);

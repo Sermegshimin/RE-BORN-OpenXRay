@@ -109,7 +109,17 @@ call .GitInfo.cmd</Command>
     <ClCompile Include="xrMemory.cpp" />
     <ClCompile Include="xrsharedmem.cpp" />
     <ClCompile Include="xrstring.cpp" />
-    <ClCompile Include="xr_ini.cpp" />
+    <ClCompile Include="xr_ini.cpp">
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</StringPooling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Sync</ExceptionHandling>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</TreatWarningAsError>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Default</InlineFunctionExpansion>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">false</TreatWarningAsError>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</TreatWarningAsError>
+      <StringPooling Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">false</StringPooling>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">EditAndContinue</DebugInformationFormat>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Mixed|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="xr_shared.cpp" />
     <ClCompile Include="xr_token.cpp" />
     <ClCompile Include="xr_trims.cpp" />
