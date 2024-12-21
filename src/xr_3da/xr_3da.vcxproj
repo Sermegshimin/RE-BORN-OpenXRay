@@ -71,7 +71,10 @@
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="splash_oxr.bmp" />
+    <Image Include="splash_oxr.bmp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </Image>
     <Image Include="stalker_cop.ico" />
     <Image Include="stalker_cs.ico" />
     <Image Include="stalker_soc.ico" />
