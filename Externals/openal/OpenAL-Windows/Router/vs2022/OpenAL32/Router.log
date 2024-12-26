@@ -1,1 +1,0 @@
-﻿D:\RE-BORN-OpenXRay\Externals\openal\OpenAL-Windows\Router\vs2022\Router.vcxproj(56,5): error MSB4019: импортированный проект "D:\RE-BORN-OpenXRay\src\Common.props" не найден. Проверьте правильность выражения в объявлении Import "D:\RE-BORN-OpenXRay\src\Common.props" и наличие файла на диске.
