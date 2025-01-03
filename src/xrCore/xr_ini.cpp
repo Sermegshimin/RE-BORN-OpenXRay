@@ -418,16 +418,15 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
 
     std::unordered_map<shared_str, shared_str> Parents;
     std::vector<shared_str> CreateSec;
-    std::vector<shared_str> DeleteSec; 
-    std::unordered_map<shared_str, std::vector<std::pair<std::string, std::string>>> ModData; //section - vector of (key - value)
-    
-    std::function<void(IReader*, pcstr)> ModLoad = [&](IReader* R, pcstr path) 
-    {
+    std::vector<shared_str> DeleteSec;
+    std::unordered_map<shared_str, std::vector<std::pair<std::string, std::string>>> ModData; // section - vector of (key - value)
+
+    std::function<void(IReader*, pcstr)> ModLoad = [&](IReader* R, pcstr path) {
         R_ASSERT(R);
         Sect* ModCurrent = nullptr;
         string4096 modstr;
         string4096 modstr2;
-        
+
         bool bInsideSTR = false;
 
         while (!R->eof())
@@ -474,14 +473,17 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                 u32 SectionNameStartPos = 2;
                 ModCurrent = xr_new<Sect>();
                 ModCurrent->Name = nullptr;
-                ModCurrent->Name = std::string(modstr).substr(SectionNameStartPos, strchr(modstr, ']') - modstr - SectionNameStartPos).c_str();
+                ModCurrent->Name = std::string(modstr)
+                                       .substr(SectionNameStartPos, strchr(modstr, ']') - modstr - SectionNameStartPos)
+                                       .c_str();
             }
             else if (modstr[0] && modstr[0] == '-' && modstr[1] && modstr[1] == '[') // new section to delete?
             {
                 u32 SectionNameStartPos = 2;
 
-                DeleteSec.push_back(std::string(modstr).substr(SectionNameStartPos, strchr(modstr, ']') - modstr - SectionNameStartPos).c_str());
-
+                DeleteSec.push_back(std::string(modstr)
+                                        .substr(SectionNameStartPos, strchr(modstr, ']') - modstr - SectionNameStartPos)
+                                        .c_str());
             }
             else if (modstr[0] && modstr[0] == '+' && modstr[1] && modstr[1] == '[') // new section to create?
             {
@@ -489,19 +491,20 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
 
                 ModCurrent = xr_new<Sect>();
                 ModCurrent->Name = nullptr;
-                ModCurrent->Name = std::string(modstr).substr(SectionNameStartPos, strchr(modstr, ']') - modstr - SectionNameStartPos).c_str();
+                ModCurrent->Name = std::string(modstr)
+                                       .substr(SectionNameStartPos, strchr(modstr, ']') - modstr - SectionNameStartPos)
+                                       .c_str();
                 CreateSec.push_back(ModCurrent->Name);
 
                 pcstr inherited_names = strstr(modstr, "]:");
                 if (nullptr != inherited_names)
                 {
                     inherited_names += 2;
-                    
-                    Parents[ModCurrent->Name] = inherited_names;    
-                }
 
+                    Parents[ModCurrent->Name] = inherited_names;
+                }
             }
-            else //name = value
+            else // name = value
             {
                 if ((ModCurrent != nullptr) && (ModCurrent->Name != nullptr))
                 {
@@ -535,7 +538,8 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                                     }
                                 }
 
-                                if (!(xr_strlen(value_raw) + xr_strlen(str_add_raw) < sizeof value_raw) || incorrectFormat)
+                                if (!(xr_strlen(value_raw) + xr_strlen(str_add_raw) < sizeof value_raw) ||
+                                    incorrectFormat)
                                 {
                                     Msg("! Incorrect inifile format: section[%s], variable[%s]. Odd number of quotes "
                                         "(\") found, but "
@@ -557,12 +561,12 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                             }
                         }
                     }
-                     else
+                    else
                     {
                         _Trim(name);
                         modstr2[0] = 0;
                     }
-                    
+
                     if (name[0] && modstr2[0])
                     {
                         auto field_name = strtok(modstr, "=");
@@ -586,14 +590,12 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                     {
                         xrDebug::Fatal(DEBUG_INFO, "Wrong field detected in the mods for the file '%s'", m_file_name);
                     }
-                    
                 }
             }
         }
     };
-    
-    std::function<bool(std::string, std::string)> CheckForMods = [&](std::string FileName, std::string FilePath)
-    {
+
+    std::function<bool(std::string, std::string)> CheckForMods = [&](std::string FileName, std::string FilePath) {
         FS_FileSet OLTX_Files; // set of files with mod prefix + FileName
         FS.file_list(OLTX_Files, FilePath.c_str(), FS_ListFiles, ("mod_" + FileName + "_*.ltx").c_str());
         if (!OLTX_Files.empty())
@@ -602,15 +604,14 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
             {
                 std::string ModFileName = iter->name.c_str();
                 std::string FullPath = FilePath + ModFileName;
-                auto PathToMod = FullPath.c_str();    
-                
+                auto PathToMod = FullPath.c_str();
+
                 IReader* I = FS.r_open(PathToMod);
                 R_ASSERT3(I, "Can't open file:", ModFileName.c_str());
 
                 ModLoad(I, PathToMod);
-                
+
                 FS.r_close(I);
-                 
             }
             return true;
         }
@@ -618,6 +619,27 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
         {
             Checked_files.push_back(FileName);
             return false;
+        }
+    };
+
+    const auto IncludeLoad = [&](const string_path _fn, const string_path inc_path, const string_path name) 
+    {
+        if (!allow_include_func || allow_include_func(_fn))
+        {
+            IReader* IR = FS.r_open(_fn);
+#ifndef XR_PLATFORM_WINDOWS // XXX: replace with runtime check for case-sensitivity
+            if (IR == nullptr)
+            {
+                xr_fs_nostrlwr(name);
+                strconcat(_fn, inc_path, name);
+                IR = FS.r_open(_fn);
+            }
+#endif
+            R_ASSERT3(IR, "Can't find include file:", name);
+
+            Load(IR, inc_path, allow_include_func);
+
+            FS.r_close(IR);
         }
     };
 
@@ -693,23 +715,27 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
             R_ASSERT(path && path[0]);
             if (_GetItem(str, 1, inc_name, '"'))
             {
-                string_path fn;
+                string_path fn, inc_path, folder;
                 strconcat(sizeof fn, fn, path, inc_name);
-                if (!allow_include_func || allow_include_func(fn))
+                _splitpath(fn, inc_path, folder, 0, 0);
+                xr_strcat(inc_path, sizeof(inc_path), folder);
+                
+                if (strstr(inc_name, "*.ltx"))
                 {
-                    IReader* I = FS.r_open(fn);
-#ifndef XR_PLATFORM_WINDOWS // XXX: replace with runtime check for case-sensitivity
-                    if (I == nullptr)
+                    FS_FileSet fset;
+                    FS.file_list(fset, inc_path, FS_ListFiles, inc_name);
+
+                    for (FS_FileSet::iterator it = fset.begin(); it != fset.end(); it++)
                     {
-                        xr_fs_nostrlwr(inc_name);
-                        strconcat(fn, path, inc_name);
-                        I = FS.r_open(fn);
+                        pcstr _name = it->name.c_str();
+                        string_path _fn;
+                        strconcat(sizeof(_fn), _fn, inc_path, _name);
+                        IncludeLoad(_fn, inc_path, _name);
                     }
-#endif
-                    R_ASSERT3(I, "Can't find include file:", inc_name);
-                    const xr_string inc_path = EFS_Utils::ExtractFilePath(fn);
-                    Load(I, inc_path.c_str(), allow_include_func);
-                    FS.r_close(I);
+                }
+                else
+                {
+                    IncludeLoad(fn, inc_path, inc_name);
                 }
             }
         }
@@ -719,12 +745,12 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
             if (Current && std::find(DeleteSec.begin(), DeleteSec.end(), Current->Name) == DeleteSec.end())
             {
                 // store previous section
-                auto I = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
-                if (I != DATA.end() && (*I)->Name == Current->Name)
+                auto iter = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
+                if (iter != DATA.end() && (*iter)->Name == Current->Name)
                 {
                     xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' found.", *Current->Name);
                 }
-                DATA.insert(I, Current);
+                DATA.insert(iter, Current);
             }
             
             Current = xr_new<Sect>();
