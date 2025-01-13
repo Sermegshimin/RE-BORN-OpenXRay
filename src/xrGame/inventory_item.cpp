@@ -139,6 +139,38 @@ void CInventoryItem::ReloadNames()
         m_Description = "";
 }
 
+void CInventoryItem::UpdateInventoryInfo(pcstr phase, bool const_name)
+{
+    if (!const_name)
+    {
+        string32 inv_name_string = "inv_name", inv_name_short_string = "inv_name_short";
+        xr_strcat(inv_name_string, phase);
+        m_name = StringTable().translate(pSettings->r_string(m_object->cNameSect(), inv_name_string));
+        xr_strcat(inv_name_short_string, phase);
+        m_nameShort = StringTable().translate(pSettings->r_string(m_object->cNameSect(), inv_name_short_string));
+    }
+    string32 description_string = "description";
+    strcat(description_string, phase);
+    if (pSettings->line_exist(m_object->cNameSect(), description_string))
+        m_Description = StringTable().translate(pSettings->r_string(m_object->cNameSect(), description_string));
+    else
+        m_Description = "";
+}
+
+void CInventoryItem::UpdateWeight(pcstr phase)
+{
+    string32 weight_string = "inv_weight";
+    strcat(weight_string, phase);
+    m_weight = pSettings->r_float(m_object->cNameSect(), weight_string);
+}
+
+void CInventoryItem::UpdateCost(pcstr phase)
+{
+    string32 cost_string = "cost";
+    strcat(cost_string, phase);
+    m_cost = pSettings->r_u32(m_object->cNameSect(), cost_string);
+}
+
 void CInventoryItem::ChangeCondition(float fDeltaCondition)
 {
     m_fCondition += fDeltaCondition;

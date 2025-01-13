@@ -96,6 +96,10 @@ public:
 public:
     virtual void Load(LPCSTR section);
     void ReloadNames();
+    void UpdateInventoryInfo(pcstr phase, bool const_name);
+    void UpdateWeight(pcstr phase);
+    void UpdateCost(pcstr phase);
+    void SetMode(u32 mode) { m_mode = mode; }
 
     LPCSTR NameItem(); // remove <virtual> by sea
     LPCSTR NameShort();
@@ -155,6 +159,8 @@ public:
     shared_str m_nameShort;
     shared_str m_nameComplex;
     bool m_highlight_equipped;
+
+    u32 m_mode = 0;
 
     SInvItemPlace m_ItemCurrPlace;
 

@@ -212,6 +212,8 @@ private:
     void PropertiesBoxForDrop(CUICellItem* cell_item, PIItem item, bool& b_show);
     void PropertiesBoxForRepair(PIItem item, bool& b_show);
     void PropertiesBoxForDonate(PIItem item, bool& b_show); //Alundaio
+    void PropertiesBoxDeleteFunctor(PIItem item, u32 functor_index);
+    void PropertiesBoxAddFunctor(PIItem item, pcstr functor, u32 functor_index);
 
 private:
     void clear_highlight_lists();

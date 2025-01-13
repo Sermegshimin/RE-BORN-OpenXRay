@@ -1193,6 +1193,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     pcstr act_str = nullptr;
     CGameObject* GO = smart_cast<CGameObject*>(item);
     shared_str section_name = GO->cNameSect();
+    u32 mode = item->m_mode;
 
     //ability to set eat string from settings
     act_str = READ_IF_EXISTS(pSettings, r_string, section_name, "default_use_text", nullptr);
@@ -1230,66 +1231,194 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
         }
     }
 
+    pcstr functor_name;
+
     //1st Custom Use action
-    pcstr functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use1_functor", nullptr);
-    if (functor_name)
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use1_functor_mode", 0))
     {
-        luabind::functor<pcstr> funct1;
-        if (GEnv.ScriptEngine->functor(functor_name, funct1))
+        functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use1_functor", nullptr);
+        if (functor_name)
         {
-            act_str = funct1(GO->lua_game_object());
-            if (act_str)
+            luabind::functor<pcstr> funct1;
+            if (GEnv.ScriptEngine->functor(functor_name, funct1))
             {
-                m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT2_ACTION);
-                b_show = true;
+                act_str = funct1(GO->lua_game_object());
+                if (act_str)
+                {
+                    m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT2_ACTION);
+                    b_show = true;
+                }
             }
         }
     }
 
     // 2nd Custom Use action
-    functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use2_functor", nullptr);
-    if (functor_name)
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use2_functor_mode", 0))
     {
-        luabind::functor<pcstr> funct1;
-        if (GEnv.ScriptEngine->functor(functor_name, funct1))
+        functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use2_functor", nullptr);
+        if (functor_name)
         {
-            act_str = funct1(GO->lua_game_object());
-            if (act_str)
+            luabind::functor<pcstr> funct1;
+            if (GEnv.ScriptEngine->functor(functor_name, funct1))
             {
-                m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT3_ACTION);
-                b_show = true;
+                act_str = funct1(GO->lua_game_object());
+                if (act_str)
+                {
+                    m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT3_ACTION);
+                    b_show = true;
+                }
             }
         }
     }
-
+    
     // 3rd Custom Use action
-    functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use3_functor", nullptr);
-    if (functor_name)
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use3_functor_mode", 0))
     {
-        luabind::functor<pcstr> funct1;
-        if (GEnv.ScriptEngine->functor(functor_name, funct1))
+       functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use3_functor", nullptr);
+        if (functor_name)
         {
-            act_str = funct1(GO->lua_game_object());
-            if (act_str)
+            luabind::functor<pcstr> funct1;
+            if (GEnv.ScriptEngine->functor(functor_name, funct1))
             {
-                m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT4_ACTION);
-                b_show = true;
+                act_str = funct1(GO->lua_game_object());
+                if (act_str)
+                {
+                    m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT4_ACTION);
+                    b_show = true;
+                }
+            }
+        }
+    }
+    
+    // 4th Custom Use action
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use4_functor_mode", 0))
+    {
+        functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use4_functor", nullptr);
+        if (functor_name)
+        {
+            luabind::functor<pcstr> funct1;
+            if (GEnv.ScriptEngine->functor(functor_name, funct1))
+            {
+                act_str = funct1(GO->lua_game_object());
+                if (act_str)
+                {
+                    m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT5_ACTION);
+                    b_show = true;
+                }
             }
         }
     }
 
-    // 4th Custom Use action
-    functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use4_functor", nullptr);
-    if (functor_name)
+    // 5th Custom Use action
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use5_functor_mode", 0))
     {
-        luabind::functor<pcstr> funct1;
-        if (GEnv.ScriptEngine->functor(functor_name, funct1))
+        functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use5_functor", nullptr);
+        if (functor_name)
         {
-            act_str = funct1(GO->lua_game_object());
-            if (act_str)
+            luabind::functor<pcstr> funct1;
+            if (GEnv.ScriptEngine->functor(functor_name, funct1))
             {
-                m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT5_ACTION);
-                b_show = true;
+                act_str = funct1(GO->lua_game_object());
+                if (act_str)
+                {
+                    m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT6_ACTION);
+                    b_show = true;
+                }
+            }
+        }
+    }
+
+    // 6th Custom Use action
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use6_functor_mode", 0))
+    {
+        functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use6_functor", nullptr);
+        if (functor_name)
+        {
+            luabind::functor<pcstr> funct1;
+            if (GEnv.ScriptEngine->functor(functor_name, funct1))
+            {
+                act_str = funct1(GO->lua_game_object());
+                if (act_str)
+                {
+                    m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT7_ACTION);
+                    b_show = true;
+                }
+            }
+        }
+    }
+
+    // 7th Custom Use action
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use7_functor_mode", 0))
+    {
+        functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use7_functor", nullptr);
+        if (functor_name)
+        {
+            luabind::functor<pcstr> funct1;
+            if (GEnv.ScriptEngine->functor(functor_name, funct1))
+            {
+                act_str = funct1(GO->lua_game_object());
+                if (act_str)
+                {
+                    m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT8_ACTION);
+                    b_show = true;
+                }
+            }
+        }
+    }
+
+    // 8th Custom Use action
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use8_functor_mode", 0))
+    {
+        functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use8_functor", nullptr);
+        if (functor_name)
+        {
+            luabind::functor<pcstr> funct1;
+            if (GEnv.ScriptEngine->functor(functor_name, funct1))
+            {
+                act_str = funct1(GO->lua_game_object());
+                if (act_str)
+                {
+                    m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT9_ACTION);
+                    b_show = true;
+                }
+            }
+        }
+    }
+
+    // 9th Custom Use action
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use9_functor_mode", 0))
+    {
+        functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use9_functor", nullptr);
+        if (functor_name)
+        {
+            luabind::functor<pcstr> funct1;
+            if (GEnv.ScriptEngine->functor(functor_name, funct1))
+            {
+                act_str = funct1(GO->lua_game_object());
+                if (act_str)
+                {
+                    m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT10_ACTION);
+                    b_show = true;
+                }
+            }
+        }
+    }
+
+    // 10th Custom Use action
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use10_functor_mode", 0))
+    {
+        functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use10_functor", nullptr);
+        if (functor_name)
+        {
+            luabind::functor<pcstr> funct1;
+            if (GEnv.ScriptEngine->functor(functor_name, funct1))
+            {
+                act_str = funct1(GO->lua_game_object());
+                if (act_str)
+                {
+                    m_UIPropertiesBox->AddItem(act_str, nullptr, INVENTORY_EAT11_ACTION);
+                    b_show = true;
+                }
             }
         }
     }
@@ -1343,6 +1472,29 @@ void CUIActorMenu::PropertiesBoxForDonate(PIItem item, bool& b_show)
     }
 }
 //-Alundaio
+
+void CUIActorMenu::PropertiesBoxDeleteFunctor(PIItem item, u32 functor_index)
+{ 
+    m_UIPropertiesBox->RemoveItemByTAG(functor_index);
+}
+
+void CUIActorMenu::PropertiesBoxAddFunctor(PIItem item, pcstr functor, u32 functor_index)
+{
+    CGameObject* GO = smart_cast<CGameObject*>(item);
+    pcstr functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), functor, nullptr);
+    if (functor_name)
+    {
+        luabind::functor<pcstr> funct1;
+        if (GEnv.ScriptEngine->functor(functor_name, funct1))
+        {
+            pcstr act_str = funct1(GO->lua_game_object());
+            if (act_str)
+            {
+                m_UIPropertiesBox->AddItem(act_str, nullptr, functor_index);
+            }
+        }
+    }
+}
 
 void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 {
@@ -1412,6 +1564,84 @@ void CUIActorMenu::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
             if (GEnv.ScriptEngine->functor(functor_name, funct4))
             {
                 if (funct4(GO->lua_game_object()))
+                    TryUseItem(cell_item);
+            }
+        }
+        break;
+    }
+    case INVENTORY_EAT6_ACTION: {
+        const CGameObject* GO = smart_cast<CGameObject*>(item);
+        if (cpcstr functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use5_action_functor", nullptr))
+        {
+            luabind::functor<bool> funct5;
+            if (GEnv.ScriptEngine->functor(functor_name, funct5))
+            {
+                if (funct5(GO->lua_game_object()))
+                    TryUseItem(cell_item);
+            }
+        }
+        break;
+    }
+    case INVENTORY_EAT7_ACTION: {
+        const CGameObject* GO = smart_cast<CGameObject*>(item);
+        if (cpcstr functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use6_action_functor", nullptr))
+        {
+            luabind::functor<bool> funct6;
+            if (GEnv.ScriptEngine->functor(functor_name, funct6))
+            {
+                if (funct6(GO->lua_game_object()))
+                    TryUseItem(cell_item);
+            }
+        }
+        break;
+    }
+    case INVENTORY_EAT8_ACTION: {
+        const CGameObject* GO = smart_cast<CGameObject*>(item);
+        if (cpcstr functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use7_action_functor", nullptr))
+        {
+            luabind::functor<bool> funct7;
+            if (GEnv.ScriptEngine->functor(functor_name, funct7))
+            {
+                if (funct7(GO->lua_game_object()))
+                    TryUseItem(cell_item);
+            }
+        }
+        break;
+    }
+    case INVENTORY_EAT9_ACTION: {
+        const CGameObject* GO = smart_cast<CGameObject*>(item);
+        if (cpcstr functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use8_action_functor", nullptr))
+        {
+            luabind::functor<bool> funct8;
+            if (GEnv.ScriptEngine->functor(functor_name, funct8))
+            {
+                if (funct8(GO->lua_game_object()))
+                    TryUseItem(cell_item);
+            }
+        }
+        break;
+    }
+    case INVENTORY_EAT10_ACTION: {
+        const CGameObject* GO = smart_cast<CGameObject*>(item);
+        if (cpcstr functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use9_action_functor", nullptr))
+        {
+            luabind::functor<bool> funct9;
+            if (GEnv.ScriptEngine->functor(functor_name, funct9))
+            {
+                if (funct9(GO->lua_game_object()))
+                    TryUseItem(cell_item);
+            }
+        }
+        break;
+    }
+    case INVENTORY_EAT11_ACTION: {
+        const CGameObject* GO = smart_cast<CGameObject*>(item);
+        if (cpcstr functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use10_action_functor", nullptr))
+        {
+            luabind::functor<bool> funct10;
+            if (GEnv.ScriptEngine->functor(functor_name, funct10))
+            {
+                if (funct10(GO->lua_game_object()))
                     TryUseItem(cell_item);
             }
         }
