@@ -383,12 +383,22 @@ static void insert_item(CInifile::Sect* tgt, const CInifile::Item& I)
     if (sect_it != tgt->Data.end() && sect_it->first.equal(I.first))
     {
         sect_it->second = I.second;
-        // #ifdef DEBUG
-        //  sect_it->comment= I.comment;
-        // #endif
     }
     else
         tgt->Data.insert(sect_it, I);
+}
+
+static void insert_item_ignore_duplicates(CInifile::Sect* tgt, const CInifile::Item& I)
+{
+    auto sect_it = std::lower_bound(tgt->Data.begin(), tgt->Data.end(), *I.first, item_pred);
+    if (sect_it != tgt->Data.end() && sect_it->first.equal(I.first))
+    {
+        return;
+    }
+    else
+    {
+        tgt->Data.insert(sect_it, I);
+    }
 }
 
 IC bool is_empty_line_now(IReader* F)
@@ -406,22 +416,118 @@ std::vector<std::string> Checked_files;
 void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_func)
 {
     R_ASSERT(F);
-    Sect* Current = nullptr;
-    string4096 str;
-    string4096 str2;
-
-    bool bInsideSTR = false;
-    bool HasLoadedModFiles = false;
-    bool WasExecuted = false;
 
     std::string OLTX_DELETE = "OLTX_DELETE";
 
-    std::unordered_map<shared_str, shared_str> Parents;
+
+    std::unordered_map<shared_str, Sect*> OLTXData;
+    std::unordered_map<shared_str, std::vector<shared_str>> IncludeParents;
+    std::unordered_map<shared_str, std::vector<shared_str>> Parents;
     std::vector<shared_str> CreateSec;
     std::vector<shared_str> DeleteSec;
     std::unordered_map<shared_str, std::vector<std::pair<std::string, std::string>>> ModData; // section - vector of (key - value)
 
-    std::function<void(IReader*, pcstr)> ModLoad = [&](IReader* R, pcstr path) {
+    std::function<void(Sect*)> StoreSection = [&](Sect * Section)
+    { 
+            OLTXData[Section->Name] = Section;
+    };
+    
+    std::unordered_map<shared_str, std::vector<shared_str>> FinalParents;
+    
+    std::function<u32(u32, shared_str, shared_str)> ParentsLoad = [&](u32 total_count, shared_str element, shared_str root_element) 
+    {
+        if (section_exist(element))
+        {
+            FinalParents[root_element].push_back(element);
+
+            Sect& inherited_section = r_section(element);
+            total_count += inherited_section.Data.size();
+        }
+        else if (OLTXData.find(element) != OLTXData.end())
+        {
+            Sect& inherited_section = *OLTXData[element];
+            shared_str sec_name = (&inherited_section)->Name;
+            if (FinalParents.find(sec_name) == FinalParents.end())
+            {
+                FinalParents[root_element].push_back(sec_name);
+            }
+            else
+            {
+                xrDebug::Fatal(DEBUG_INFO, "Recursive parents for section '%s' was found.", root_element);
+            }
+
+            if (!section_exist(sec_name))
+            {
+                for (shared_str parent : IncludeParents[sec_name])
+                {
+                    total_count = ParentsLoad(total_count, parent, root_element);
+                }
+            }
+
+            total_count += inherited_section.Data.size();
+        }
+        else
+        {
+            xrDebug::Fatal(DEBUG_INFO, "Undefined parent '%s' was found.", element);
+        }
+        return total_count;
+    };
+    
+    std::function<void()> StarIncluding = [&]() {
+        for (auto it = OLTXData.begin(); it != OLTXData.end(); ++it)
+        {
+            if (&IncludeParents[it->first] != nullptr)
+            {
+                std::vector<shared_str> element = IncludeParents[it->first];
+                u32 j, total_count = 0;
+                for (j = 0; j < element.size(); ++j)
+                {
+                    total_count += ParentsLoad(total_count, element[j], it->first);
+                }
+
+                it->second->Data.reserve(it->second->Data.size() + total_count);
+
+                element = FinalParents[it->first];
+                for (j = 0; j < element.size(); ++j)
+                {
+                    if (section_exist(element[j]))
+                    {
+                        Sect& inherited_section = r_section(element[j]);
+                        for (auto it2 = inherited_section.Data.begin(); it2 != inherited_section.Data.end(); ++it2)
+                        {
+                            insert_item_ignore_duplicates(it->second, *it2);
+                        }
+                    }
+                    else
+                    {
+                        Sect& inherited_section = *OLTXData[element[j]];
+                        for (auto it2 = inherited_section.Data.begin(); it2 != inherited_section.Data.end(); ++it2)
+                        {
+                            insert_item_ignore_duplicates(it->second, *it2);
+                        }
+                    }
+                }
+
+                if (it->second)
+                {
+                    auto I = std::lower_bound(DATA.begin(), DATA.end(), *it->first, sect_pred);
+                    if (I != DATA.end() && (*I)->Name == it->first)
+                        xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' found.", *it->first);
+                    DATA.insert(I, it->second);
+                }
+            }
+            else
+            {
+                auto I = std::lower_bound(DATA.begin(), DATA.end(), *it->first, sect_pred);
+                if (I != DATA.end() && (*I)->Name == it->first)
+                    xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' found.", *it->first);
+                DATA.insert(I, it->second);
+            }
+        }
+    };
+    
+    std::function<void(IReader*, pcstr)> ModLoad = [&](IReader* R, pcstr path) 
+    {
         R_ASSERT(R);
         Sect* ModCurrent = nullptr;
         string4096 modstr;
@@ -451,7 +557,7 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                 char quot = '"';
                 bool in_quot = false;
 
-                pcstr q1 = strchr(str, quot);
+                pcstr q1 = strchr(modstr, quot);
                 if (q1 && q1 < comm)
                 {
                     pcstr q2 = strchr(++q1, quot);
@@ -470,6 +576,11 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
 
             if (modstr[0] && modstr[0] == '!' && modstr[1] && modstr[1] == '[') // new section to overwrite?
             {
+                if (strchr(modstr, ']') == nullptr)
+                {
+                    xrDebug::Fatal(DEBUG_INFO, "Wrong section '%s' detected in the mods for the file '%s'", modstr, m_file_name);
+                }
+                
                 u32 SectionNameStartPos = 2;
                 ModCurrent = xr_new<Sect>();
                 ModCurrent->Name = nullptr;
@@ -479,6 +590,11 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
             }
             else if (modstr[0] && modstr[0] == '-' && modstr[1] && modstr[1] == '[') // new section to delete?
             {
+                if (strchr(modstr, ']') == nullptr)
+                {
+                    xrDebug::Fatal(DEBUG_INFO, "Wrong section '%s' detected in the mods for the file '%s'", modstr, m_file_name);
+                }
+                
                 u32 SectionNameStartPos = 2;
 
                 DeleteSec.push_back(std::string(modstr)
@@ -487,6 +603,11 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
             }
             else if (modstr[0] && modstr[0] == '+' && modstr[1] && modstr[1] == '[') // new section to create?
             {
+                if (strchr(modstr, ']') == nullptr)
+                {
+                    xrDebug::Fatal(DEBUG_INFO, "Wrong section '%s' detected in the mods for the file '%s'", modstr, m_file_name);
+                }
+                
                 u32 SectionNameStartPos = 2;
 
                 ModCurrent = xr_new<Sect>();
@@ -499,9 +620,21 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                 pcstr inherited_names = strstr(modstr, "]:");
                 if (nullptr != inherited_names)
                 {
-                    inherited_names += 2;
-
-                    Parents[ModCurrent->Name] = inherited_names;
+                    if (Parents.find(ModCurrent->Name) == Parents.end())
+                    {
+                        inherited_names += 2;
+                        u32 cnt = _GetItemCount(inherited_names);
+                        for (u32 k = 0; k < cnt; ++k)
+                        {
+                            string512 tmp;
+                            pstr inherited_name = _GetItem(inherited_names, k, tmp);
+                            Parents[ModCurrent->Name].push_back(inherited_name);
+                        }
+                    }
+                    else
+                    {
+                        xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' detected in the mods for the file '%s'", modstr, m_file_name);
+                    }
                 }
             }
             else // name = value
@@ -544,7 +677,7 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                                     Msg("! Incorrect inifile format: section[%s], variable[%s]. Odd number of quotes "
                                         "(\") found, but "
                                         "should be even. Trimming it to the first new line.",
-                                        Current->Name.c_str(), name);
+                                        ModCurrent->Name.c_str(), name);
                                     _Trim(prevStr, '\"');
                                     xr_strcpy(modstr2, prevStr);
                                     F->seek(prevPos);
@@ -595,7 +728,8 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
         }
     };
 
-    std::function<bool(std::string, std::string)> CheckForMods = [&](std::string FileName, std::string FilePath) {
+    std::function<bool(std::string, std::string)> CheckForMods = [&](std::string FileName, std::string FilePath) 
+    {
         FS_FileSet OLTX_Files; // set of files with mod prefix + FileName
         FS.file_list(OLTX_Files, FilePath.c_str(), FS_ListFiles, ("mod_" + FileName + "_*.ltx").c_str());
         if (!OLTX_Files.empty())
@@ -622,29 +756,36 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
         }
     };
 
-    const auto IncludeLoad = [&](const string_path _fn, const string_path inc_path, const string_path name) 
-    {
-        if (!allow_include_func || allow_include_func(_fn))
+    std::function<void(IReader*, pcstr, bool)> OLTXLoad = [&](IReader* F, pcstr path, bool StarLoad) 
+    { 
+        auto IncludeLoad = [&, OLTXLoad](const string_path _fn, const string_path inc_path, const string_path name, bool IncludeStarLoad) 
         {
-            IReader* IR = FS.r_open(_fn);
-#ifndef XR_PLATFORM_WINDOWS // XXX: replace with runtime check for case-sensitivity
-            if (IR == nullptr)
+            if (!allow_include_func || allow_include_func(_fn))
             {
-                xr_fs_nostrlwr(name);
-                strconcat(_fn, inc_path, name);
-                IR = FS.r_open(_fn);
-            }
+                IReader* IR = FS.r_open(_fn);
+#ifndef XR_PLATFORM_WINDOWS // XXX: replace with runtime check for case-sensitivity
+                if (IR == nullptr)
+                {
+                    xr_fs_nostrlwr(name);
+                    strconcat(_fn, inc_path, name);
+                    IR = FS.r_open(_fn);
+                }
 #endif
-            R_ASSERT3(IR, "Can't find include file:", name);
+                R_ASSERT3(IR, "Can't find include file:", name);
 
-            Load(IR, inc_path, allow_include_func);
+                OLTXLoad(IR, inc_path, IncludeStarLoad);
 
-            FS.r_close(IR);
-        }
-    };
+                FS.r_close(IR);
+            }
+        };
 
-    if (!WasExecuted)
-    {    
+        Sect* Current = nullptr;
+        string4096 str;
+        string4096 str2;
+
+        bool bInsideSTR = false;
+        bool HasLoadedModFiles = false;
+        
         if (m_file_name[0])
         {
             string4096 split_drive;
@@ -667,278 +808,318 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                 HasLoadedModFiles = false;
             }
         }
-    }
-    WasExecuted = true;
-    
-    while (!F->eof())
-    {
-        F->r_string(str, sizeof str);
-        _Trim(str);
 
-        pstr comm = strchr(str, ';');
-        pstr comm_1 = strchr(str, '/');
-
-        if (comm_1 && *(comm_1 + 1) == '/' && (!comm || (comm && comm_1 < comm)))
+        while (!F->eof())
         {
-            comm = comm_1;
-        }
+            F->r_string(str, sizeof str);
+            _Trim(str);
+
+            pstr comm = strchr(str, ';');
+            pstr comm_1 = strchr(str, '/');
+
+            if (comm_1 && *(comm_1 + 1) == '/' && (!comm || (comm && comm_1 < comm)))
+            {
+                comm = comm_1;
+            }
 
 #ifdef DEBUG
-        pstr comment = 0;
+            pstr comment = 0;
 #endif
-        if (comm)
-        {
-            //."bla-bla-bla;nah-nah-nah"
-            char quot = '"';
-            bool in_quot = false;
-
-            pcstr q1 = strchr(str, quot);
-            if (q1 && q1 < comm)
+            if (comm)
             {
-                pcstr q2 = strchr(++q1, quot);
-                if (q2 && q2 > comm)
-                    in_quot = true;
-            }
+                //."bla-bla-bla;nah-nah-nah"
+                char quot = '"';
+                bool in_quot = false;
 
-            if (!in_quot)
-            {
-                *comm = 0;
+                pcstr q1 = strchr(str, quot);
+                if (q1 && q1 < comm)
+                {
+                    pcstr q2 = strchr(++q1, quot);
+                    if (q2 && q2 > comm)
+                        in_quot = true;
+                }
+
+                if (!in_quot)
+                {
+                    *comm = 0;
 #ifdef DEBUG
-                comment = comm + 1;
+                    comment = comm + 1;
 #endif
+                }
             }
-        }
 
-        if (str[0] && str[0] == '#' && strstr(str, "#include")) // handle includes
-        {
-            string_path inc_name;
-            R_ASSERT(path && path[0]);
-            if (_GetItem(str, 1, inc_name, '"'))
+            if (str[0] && str[0] == '#' && strstr(str, "#include")) // handle includes
             {
-                string_path fn, inc_path, folder;
-                strconcat(sizeof fn, fn, path, inc_name);
-                _splitpath(fn, inc_path, folder, 0, 0);
-                xr_strcat(inc_path, sizeof(inc_path), folder);
-                
-                if (strstr(inc_name, "*.ltx"))
+                string_path inc_name;
+                R_ASSERT(path && path[0]);
+                if (_GetItem(str, 1, inc_name, '"'))
                 {
-                    FS_FileSet fset;
-                    FS.file_list(fset, inc_path, FS_ListFiles, inc_name);
+                    string_path fn, inc_path, folder, new_name, extension;
+                    strconcat(sizeof fn, fn, path, inc_name);
+                    _splitpath(fn, inc_path, folder, new_name, extension);
+                    xr_strcat(inc_path, sizeof(inc_path), folder);
+                    xr_strcat(new_name, sizeof(new_name), extension);
 
-                    for (FS_FileSet::iterator it = fset.begin(); it != fset.end(); it++)
+                    if (strstr(inc_name, "*.ltx"))
                     {
-                        pcstr _name = it->name.c_str();
-                        string_path _fn;
-                        strconcat(sizeof(_fn), _fn, inc_path, _name);
-                        IncludeLoad(_fn, inc_path, _name);
-                    }
-                }
-                else
-                {
-                    IncludeLoad(fn, inc_path, inc_name);
-                }
-            }
-        }
-        else if (str[0] && str[0] == '[') // new section ?
-        {
-            // insert previous filled section
-            if (Current && std::find(DeleteSec.begin(), DeleteSec.end(), Current->Name) == DeleteSec.end())
-            {
-                // store previous section
-                auto iter = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
-                if (iter != DATA.end() && (*iter)->Name == Current->Name)
-                {
-                    xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' found.", *Current->Name);
-                }
-                DATA.insert(iter, Current);
-            }
-            
-            Current = xr_new<Sect>();
-            Current->Name = nullptr;
-            // start new section
-            R_ASSERT3(strchr(str, ']'), "Bad ini section found: ", str);
-            pcstr inherited_names = strstr(str, "]:");
-            if (nullptr != inherited_names)
-            {
-                VERIFY2(m_flags.test(eReadOnly), "Allow for readonly mode only.");
-                inherited_names += 2;
-                u32 cnt = _GetItemCount(inherited_names);
-                u32 total_count = 0;
-                u32 k = 0;
-                for (k = 0; k < cnt; ++k)
-                {
-                    string512 tmp;
-                    _GetItem(inherited_names, k, tmp);
-                    Sect& inherited_section = r_section(tmp);
-                    total_count += inherited_section.Data.size();
-                }
+                        FS_FileSet fset;
+                        FS.file_list(fset, inc_path, FS_ListFiles, new_name);
 
-                Current->Data.reserve(Current->Data.size() + total_count);
-
-                for (k = 0; k < cnt; ++k)
-                {
-                    string512 tmp;
-                    _GetItem(inherited_names, k, tmp);
-                    Sect& inherited_section = r_section(tmp);
-                    for (auto it = inherited_section.Data.begin(); it != inherited_section.Data.end(); ++it)
-                        insert_item(Current, *it);
-                }
-            }
-            *strchr(str, ']') = 0;
-            Current->Name = xr_strlwr(str + 1);
-        }
-        else // name = value
-        {
-            if (Current)
-            {
-                string4096 value_raw;
-                char* name = str;
-                char* t = strchr(name, '=');
-                if (t)
-                {
-                    *t = 0;
-                    _Trim(name);
-                    ++t;
-                    xr_strcpy(value_raw, t);
-                    bInsideSTR = _parse(str2, value_raw);
-                    if (bInsideSTR) // multiline str value
-                    {
-                        string4096 prevStr;
-                        xr_strcpy(prevStr, str2);
-
-                        bool incorrectFormat = false;
-                        const size_t prevPos = F->tell();
-                        while (bInsideSTR)
+                        for (FS_FileSet::iterator it = fset.begin(); it != fset.end(); it++)
                         {
-                            xr_strcat(value_raw, sizeof value_raw, "\r\n");
-                            string4096 str_add_raw;
-                            F->r_string(str_add_raw, sizeof str_add_raw);
+                            string_path _fn;
+                            strconcat(sizeof _fn, _fn, inc_path, (it->name).c_str());
 
-                            cpstr sectionNameTester = strchr(str_add_raw, '[');
-                            if (sectionNameTester)
-                            {
-                                if (strchr(sectionNameTester, ']'))
-                                {
-                                    // That's a new section name! This is 100% error!
-                                    incorrectFormat = true;
-                                }
-                            }
-
-                            if (!(xr_strlen(value_raw) + xr_strlen(str_add_raw) < sizeof value_raw) || incorrectFormat)
-                            {
-                                Msg("! Incorrect inifile format: section[%s], variable[%s]. Odd number of quotes "
-                                    "(\") found, but "
-                                    "should be even. Trimming it to the first new line.",
-                                    Current->Name.c_str(), name);
-                                _Trim(prevStr, '\"');
-                                xr_strcpy(str2, prevStr);
-                                F->seek(prevPos);
-                                break;
-                            }
-
-                            xr_strcat(value_raw, sizeof value_raw, str_add_raw);
-                            bInsideSTR = _parse(str2, value_raw);
-                            if (bInsideSTR)
-                            {
-                                if (is_empty_line_now(F))
-                                    xr_strcat(value_raw, sizeof value_raw, "\r\n");
-                            }
+                            IncludeLoad(_fn, inc_path, (it->name).c_str(), true);
                         }
-                    }
-                }
-                else
-                {
-                    _Trim(name);
-                    str2[0] = 0;
-                }
-
-                Item I;
-
-                I.first = name[0] ? name : NULL;
-
-                if (!HasLoadedModFiles)
-                {   
-                    I.second = str2[0] ? str2 : NULL;
-                }
-                else
-                {
-                    auto iter = std::find_if(ModData[Current->Name].begin(), ModData[Current->Name].end(), [name] (const auto& pair) {return pair.first == name;});
-                    
-                    if (iter != ModData[Current->Name].end())
-                    {
-                        auto new_iter = *iter;
-                        if (new_iter.second == OLTX_DELETE)
-                        {
-                           continue;
-                        }
-                        I.second = new_iter.second.c_str();
+                        
+                        StarIncluding();
+                        FinalParents.clear();
+                        OLTXData.clear();
                     }
                     else
                     {
-                        I.second = str2[0] ? str2 : NULL;
+                        IncludeLoad(fn, inc_path, inc_name, false);
                     }
                 }
-                
-                // #ifdef DEBUG
-                //  I.comment = m_flags.test(eReadOnly)?0:comment;
-                // #endif
-
-                if (m_flags.test(eReadOnly))
+            }
+            else if (str[0] && str[0] == '[') // new section ?
+            {
+                // insert previous filled section
+                if (Current && std::find(DeleteSec.begin(), DeleteSec.end(), Current->Name) == DeleteSec.end())
                 {
-                    if (*I.first)
-                        insert_item(Current, I);
+                    // store previous section
+                    if (!StarLoad)
+                    {
+                        auto I = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
+                        if (I != DATA.end() && (*I)->Name == Current->Name)
+                        {
+                            xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added.", *Current->Name);
+                        }
+                        DATA.insert(I, Current);
+                    }
+                    else
+                    {
+                        StoreSection(Current);
+                    }  
                 }
-                else
+
+                Current = xr_new<Sect>();
+                Current->Name = nullptr;
+                // start new section
+                R_ASSERT3(strchr(str, ']'), "Bad ini section found: ", str);
+                
+                pcstr inherited_names = strstr(str, "]:");
+                if (nullptr != inherited_names)
                 {
-                    if (*I.first || *I.second
-                        // #ifdef DEBUG
-                        //  || *I.comment
-                        // #endif
-                    )
-                    insert_item(Current, I);
+                    VERIFY2(m_flags.test(eReadOnly), "Allow for readonly mode only.");
+                    inherited_names += 2;
+                    u32 cnt = _GetItemCount(inherited_names);
+                    u32 total_count = 0;
+                    u32 k = 0;
+                    
+                    if (!StarLoad)
+                    {
+                        for (k = 0; k < cnt; ++k)
+                        {
+                            string512 tmp;
+                            _GetItem(inherited_names, k, tmp);
+                            Sect& inherited_section = r_section(tmp);
+                            total_count += inherited_section.Data.size();
+                        }
+
+                        Current->Data.reserve(Current->Data.size() + total_count);
+
+                        for (k = 0; k < cnt; ++k)
+                        {
+                            string512 tmp;
+                            _GetItem(inherited_names, k, tmp);
+                            Sect& inherited_section = r_section(tmp);
+                            for (auto it = inherited_section.Data.begin(); it != inherited_section.Data.end(); ++it)
+                                insert_item(Current, *it);
+                        }
+                    }
+                    
+                    *strchr(str, ']') = 0;
+                    Current->Name = xr_strlwr(str + 1);
+
+                    if (StarLoad)
+                    {
+                        for (k = 0; k < cnt; ++k)
+                        {
+                            string512 tmp;
+                            _GetItem(inherited_names, k, tmp);
+                            IncludeParents[Current->Name].push_back(tmp);
+                        }
+                    }
+                }
+
+                if (Current->Name == nullptr)
+                {
+                    *strchr(str, ']') = 0;
+                    Current->Name = xr_strlwr(str + 1);
+                }
+            }
+            else // name = value
+            {
+                if (Current)
+                {
+                    string4096 value_raw;
+                    char* name = str;
+                    char* t = strchr(name, '=');
+                    if (t)
+                    {
+                        *t = 0;
+                        _Trim(name);
+                        ++t;
+                        xr_strcpy(value_raw, t);
+                        bInsideSTR = _parse(str2, value_raw);
+                        if (bInsideSTR) // multiline str value
+                        {
+                            string4096 prevStr;
+                            xr_strcpy(prevStr, str2);
+
+                            bool incorrectFormat = false;
+                            const size_t prevPos = F->tell();
+                            while (bInsideSTR)
+                            {
+                                xr_strcat(value_raw, sizeof value_raw, "\r\n");
+                                string4096 str_add_raw;
+                                F->r_string(str_add_raw, sizeof str_add_raw);
+
+                                cpstr sectionNameTester = strchr(str_add_raw, '[');
+                                if (sectionNameTester)
+                                {
+                                    if (strchr(sectionNameTester, ']'))
+                                    {
+                                        // That's a new section name! This is 100% error!
+                                        incorrectFormat = true;
+                                    }
+                                }
+
+                                if (!(xr_strlen(value_raw) + xr_strlen(str_add_raw) < sizeof value_raw) ||
+                                    incorrectFormat)
+                                {
+                                    Msg("! Incorrect inifile format: section[%s], variable[%s]. Odd number of quotes "
+                                        "(\") found, but "
+                                        "should be even. Trimming it to the first new line.",
+                                        Current->Name.c_str(), name);
+                                    _Trim(prevStr, '\"');
+                                    xr_strcpy(str2, prevStr);
+                                    F->seek(prevPos);
+                                    break;
+                                }
+
+                                xr_strcat(value_raw, sizeof value_raw, str_add_raw);
+                                bInsideSTR = _parse(str2, value_raw);
+                                if (bInsideSTR)
+                                {
+                                    if (is_empty_line_now(F))
+                                        xr_strcat(value_raw, sizeof value_raw, "\r\n");
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _Trim(name);
+                        str2[0] = 0;
+                    }
+
+                    Item I;
+
+                    I.first = name[0] ? name : NULL;
+
+                    if (!HasLoadedModFiles)
+                    {
+                        I.second = str2[0] ? str2 : NULL;
+                    }
+                    else
+                    {
+                        auto iter = std::find_if(ModData[Current->Name].begin(), ModData[Current->Name].end(),
+                            [name](const auto& pair) { return pair.first == name; });
+
+                        if (iter != ModData[Current->Name].end())
+                        {
+                            auto new_iter = *iter;
+                            if (new_iter.second == OLTX_DELETE)
+                            {
+                                continue;
+                            }
+                            I.second = new_iter.second.c_str();
+                        }
+                        else
+                        {
+                            I.second = str2[0] ? str2 : NULL;
+                        }
+                    }
+
+                    // #ifdef DEBUG
+                    //  I.comment = m_flags.test(eReadOnly)?0:comment;
+                    // #endif
+
+                    if (m_flags.test(eReadOnly))
+                    {
+                        if (*I.first)
+                            insert_item(Current, I);
+                    }
+                    else
+                    {
+                        if (*I.first || *I.second
+                            // #ifdef DEBUG
+                            //  || *I.comment
+                            // #endif
+                        )
+                            insert_item(Current, I);
+                    }
                 }
             }
         }
-    }
-    if (Current && std::find(DeleteSec.begin(), DeleteSec.end(), Current->Name) == DeleteSec.end())
-    {
-        auto I = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
-        if (I != DATA.end() && (*I)->Name == Current->Name)
-            xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' found.", *Current->Name);
-        DATA.insert(I, Current);
-    }
+        if (Current && std::find(DeleteSec.begin(), DeleteSec.end(), Current->Name) == DeleteSec.end())
+        {
+            if (!StarLoad)
+            {
+                auto I = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
+                if (I != DATA.end() && (*I)->Name == Current->Name)
+                {
+                    xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added.", *Current->Name);
+                }
+                DATA.insert(I, Current);
+            }
+            else
+            {
+                StoreSection(Current);
+            }
+        }
+    };
+
+    OLTXLoad(F, path, false);
+    
     if (!CreateSec.empty())
     {
         for (int i = 0; i < CreateSec.size() - 1; i++)
         {
-            Current = xr_new<Sect>();
+            Sect* Current = xr_new<Sect>();
             Current->Name = CreateSec[i];
-            
-            shared_str inherited_names = Parents[Current->Name];
-            u32 cnt = _GetItemCount(inherited_names.c_str());
+
             u32 total_count = 0;
             u32 k = 0;
-            for (k = 0; k < cnt; ++k)
+            for (k = 0; k < Parents[Current->Name].size(); ++k)
             {
-                string512 tmp;
-                _GetItem(inherited_names.c_str(), k, tmp);
-                Sect& inherited_section = r_section(tmp);
-                total_count += inherited_section.Data.size();
+                total_count += ParentsLoad(total_count, Parents[Current->Name][k], CreateSec[i]);
             }
 
             Current->Data.reserve(Current->Data.size() + total_count);
 
-            for (k = 0; k < cnt; ++k)
+            for (k = 0; k < FinalParents[Current->Name].size(); ++k)
             {
-                string512 tmp;
-                _GetItem(inherited_names.c_str(), k, tmp);
-                Sect& inherited_section = r_section(tmp);
+                Sect& inherited_section = r_section(FinalParents[Current->Name][k]);
                 for (auto it = inherited_section.Data.begin(); it != inherited_section.Data.end(); ++it)
                 {
                     insert_item(Current, *it);
                 }
             }
-            
+
             for (int j = 0; j < ModData[CreateSec[i]].size(); j++)
             {
                 Item N;
