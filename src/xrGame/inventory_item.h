@@ -101,6 +101,8 @@ public:
     void UpdateCost(pcstr phase);
     void SetMode(u32 mode) { m_mode = mode; }
 
+    u32 GetMode() const { return m_mode; } 
+
     LPCSTR NameItem(); // remove <virtual> by sea
     LPCSTR NameShort();
     shared_str ItemDescription() { return m_Description; }

@@ -100,6 +100,7 @@ luabind::class_<CScriptGameObject>& script_register_game_object1(luabind::class_
         .def("update_weight", &CScriptGameObject::UpdateWeight)
         .def("update_cost", &CScriptGameObject::UpdateCost)
         .def("set_mode", &CScriptGameObject::SetMode)
+        .def("get_mode", &CScriptGameObject::GetMode)
         .def("death_time", &CScriptGameObject::DeathTime)
         //		.def("armor",						&CScriptGameObject::Armor)
         .def("max_health", &CScriptGameObject::MaxHealth)

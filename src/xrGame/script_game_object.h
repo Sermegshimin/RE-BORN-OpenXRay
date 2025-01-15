@@ -186,6 +186,7 @@ public:
     bool UpdateWeight(pcstr phase);
     bool UpdateCost(pcstr phase);
     bool SetMode(u32 mode);
+    u32 GetMode() const;
 
     // CEntity
     _DECLARE_FUNCTION10(DeathTime, u32);

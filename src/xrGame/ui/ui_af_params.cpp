@@ -38,6 +38,7 @@ constexpr std::tuple<ALife::EConditionRestoreType, cpcstr, cpcstr, float, bool, 
     //{ ALife::EConditionRestoreType,   "section",                  "caption",          magnitude, sign_inverse, "unit" }
     { ALife::eHealthRestoreSpeed,       "health_restore_speed",     "ui_inv_health",    1.0f,      false,        "%" },
     { ALife::eSatietyRestoreSpeed,      "satiety_restore_speed",    "ui_inv_satiety",   1.0f,      false,        "%" },
+    { ALife::eThirstRestoreSpeed,       "thirst_restore_speed",     "ui_inv_thirst",    1.0f,      false,        "%" },
     { ALife::ePowerRestoreSpeed,        "power_restore_speed",      "ui_inv_power",     1.0f,      false,        nullptr },
     { ALife::eBleedingRestoreSpeed,     "bleeding_restore_speed",   "ui_inv_bleeding", -1.0f,      true,         "%" },
     { ALife::eRadiationRestoreSpeed,    "radiation_restore_speed",  "ui_inv_radiation", 1.0f,      true,         nullptr },

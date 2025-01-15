@@ -88,7 +88,7 @@ BIND_FUNCTION10(&object(), CScriptGameObject::GetMorale, CEntityAlive, condition
 BIND_FUNCTION01(&object(), CScriptGameObject::SetHealth, CEntityAlive, conditions().ChangeHealth, float, float);
 BIND_FUNCTION01(&object(), CScriptGameObject::SetPsyHealth, CEntityAlive, conditions().ChangePsyHealth, float, float);
 BIND_FUNCTION01(&object(), CScriptGameObject::SetPower, CEntityAlive, conditions().ChangePower, float, float);
-BIND_FUNCTION01(&object(), CScriptGameObject::ChangeSatiety, CEntityAlive, conditions().ChangeSatiety, float, float);
+BIND_FUNCTION01(&object(), CScriptGameObject::ChangeSatiety, CEntityAlive, conditions().ChangeSatietyOnly, float, float);
 BIND_FUNCTION01(&object(), CScriptGameObject::SetRadiation, CEntityAlive, conditions().ChangeRadiation, float, float);
 BIND_FUNCTION01(&object(), CScriptGameObject::SetBleeding, CEntityAlive, conditions().ChangeBleeding, float, float);
 BIND_FUNCTION01(
@@ -543,6 +543,17 @@ bool CScriptGameObject::SetMode(u32 mode)
     }
     inventory_item->SetMode(mode); //for dynamic functors
     return true;
+}
+
+u32 CScriptGameObject::GetMode() const
+{
+    CInventoryItem* inventory_item = smart_cast<CInventoryItem*>(&object());
+    if (!inventory_item)
+    {
+        GEnv.ScriptEngine->script_log(LuaMessageType::Error, "CSciptEntity : cannot access class member GetMode!");
+        return NULL;
+    }
+    return inventory_item->GetMode();
 }
 
 void CScriptGameObject::eat(CScriptGameObject* item)

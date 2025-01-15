@@ -115,6 +115,7 @@ void CUIMainIngameWnd::Init()
     m_ind_bleeding = UIHelper::CreateStatic(uiXml, "indicator_bleeding", this, false);
     m_ind_radiation = UIHelper::CreateStatic(uiXml, "indicator_radiation", this, false);
     m_ind_starvation = UIHelper::CreateStatic(uiXml, "indicator_starvation", this, false);
+    m_ind_dehydration = UIHelper::CreateStatic(uiXml, "indicator_dehydration", this, false);
     m_ind_weapon_broken = UIHelper::CreateStatic(uiXml, "indicator_weapon_broken", this, false);
     m_ind_helmet_broken = UIHelper::CreateStatic(uiXml, "indicator_helmet_broken", this, false);
     m_ind_outfit_broken = UIHelper::CreateStatic(uiXml, "indicator_outfit_broken", this, false);
@@ -172,8 +173,7 @@ void CUIMainIngameWnd::Init()
         UIArtefactIcon->Show(false);
     }
 
-    const static shared_str warningStrings[7] = {"jammed", "radiation", "wounds", "starvation", "fatigue",
-        "invincible", "artefact"};
+    const static shared_str warningStrings[8] = {"jammed", "radiation", "wounds", "starvation", "fatigue", "invincible", "artefact", "dehydration"};
 
     // Загружаем пороговые значения для индикаторов
     EWarningIcons j = ewiWeaponJammed;
@@ -725,6 +725,27 @@ void CUIMainIngameWnd::UpdateMainIndicators()
                 m_ind_starvation->InitTexture("ui_inGame2_circle_hunger_yellow");
             else
                 m_ind_starvation->InitTexture("ui_inGame2_circle_hunger_red");
+        }
+    }
+
+    // Thirst icon
+    if (m_ind_dehydration)
+    {
+        const float thirst = pActor->conditions().GetThirst();
+        const float thirst_critical = pActor->conditions().ThirstCritical();
+        const float thirst_koef =
+            (thirst - thirst_critical) / (thirst >= thirst_critical ? 1 - thirst_critical : thirst_critical);
+        if (thirst_koef > 0.5)
+            m_ind_dehydration->Show(false);
+        else
+        {
+            m_ind_dehydration->Show(true);
+            if (thirst_koef > 0.0f)
+                m_ind_dehydration->InitTexture("ui_inGame2_circle_thirst_green");
+            else if (thirst_koef > -0.5f)
+                m_ind_dehydration->InitTexture("ui_inGame2_circle_thirst_yellow");
+            else
+                m_ind_dehydration->InitTexture("ui_inGame2_circle_thirst_red");
         }
     }
 

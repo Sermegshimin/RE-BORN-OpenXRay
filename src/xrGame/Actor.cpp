@@ -1959,7 +1959,7 @@ void CActor::UpdateArtefactsOnBeltAndOutfit()
             conditions().ChangeBleeding((artefact->m_fBleedingRestoreSpeed * art_cond) * f_update_time);
             conditions().ChangeHealth((artefact->m_fHealthRestoreSpeed * art_cond) * f_update_time);
             conditions().ChangePower((artefact->m_fPowerRestoreSpeed * art_cond) * f_update_time);
-            conditions().ChangeSatiety((artefact->m_fSatietyRestoreSpeed * art_cond) * f_update_time);
+            conditions().ChangeSatietyAndThirst((artefact->m_fSatietyRestoreSpeed * art_cond) * f_update_time, (artefact->m_fThirstRestoreSpeed * art_cond) * f_update_time);
             if (artefact->m_fRadiationRestoreSpeed * art_cond > 0.0f)
             {
                 float val = (artefact->m_fRadiationRestoreSpeed * art_cond) - conditions().GetBoostRadiationImmunity();
@@ -1977,7 +1977,7 @@ void CActor::UpdateArtefactsOnBeltAndOutfit()
         conditions().ChangeBleeding(outfit->m_fBleedingRestoreSpeed * f_update_time);
         conditions().ChangeHealth(outfit->m_fHealthRestoreSpeed * f_update_time);
         conditions().ChangePower(outfit->m_fPowerRestoreSpeed * f_update_time);
-        conditions().ChangeSatiety(outfit->m_fSatietyRestoreSpeed * f_update_time);
+        conditions().ChangeSatietyAndThirst(outfit->m_fSatietyRestoreSpeed * f_update_time, outfit->m_fThirstRestoreSpeed * f_update_time);
         conditions().ChangeRadiation(outfit->m_fRadiationRestoreSpeed * f_update_time);
     }
     else
@@ -2164,6 +2164,7 @@ float CActor::GetRestoreSpeed(ALife::EConditionRestoreType const& type)
     {
         res = conditions().change_v().m_fV_HealthRestore;
         res += conditions().V_SatietyHealth() * (conditions().GetSatiety() > 0.0f ? 1.0f : -1.0f);
+        res += conditions().V_ThirstHealth() * (conditions().GetThirst() > 0.0f ? 1.0f : -1.0f);
 
         for (auto& it : inventory().m_belt)
         {
@@ -2207,6 +2208,22 @@ float CActor::GetRestoreSpeed(ALife::EConditionRestoreType const& type)
         const auto outfit = GetOutfit();
         if (outfit)
             res += outfit->m_fSatietyRestoreSpeed;
+
+        break;
+    }
+    case ALife::eThirstRestoreSpeed: {
+        res = conditions().V_Thirst();
+
+        for (auto& it : inventory().m_belt)
+        {
+            const auto artefact = smart_cast<CArtefact*>(it);
+            if (artefact)
+                res += artefact->m_fThirstRestoreSpeed * artefact->GetCondition();
+        }
+
+        const auto outfit = GetOutfit();
+        if (outfit)
+            res += outfit->m_fThirstRestoreSpeed;
 
         break;
     }
