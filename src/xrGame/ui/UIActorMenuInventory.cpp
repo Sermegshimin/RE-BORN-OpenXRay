@@ -1234,7 +1234,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     pcstr functor_name;
 
     //1st Custom Use action
-    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use1_functor_mode", 0))
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use1_functor_mode", mode))
     {
         functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use1_functor", nullptr);
         if (functor_name)
@@ -1253,7 +1253,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     }
 
     // 2nd Custom Use action
-    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use2_functor_mode", 0))
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use2_functor_mode", mode))
     {
         functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use2_functor", nullptr);
         if (functor_name)
@@ -1272,7 +1272,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     }
     
     // 3rd Custom Use action
-    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use3_functor_mode", 0))
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use3_functor_mode", mode))
     {
        functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use3_functor", nullptr);
         if (functor_name)
@@ -1291,7 +1291,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     }
     
     // 4th Custom Use action
-    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use4_functor_mode", 0))
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use4_functor_mode", mode))
     {
         functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use4_functor", nullptr);
         if (functor_name)
@@ -1310,7 +1310,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     }
 
     // 5th Custom Use action
-    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use5_functor_mode", 0))
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use5_functor_mode", mode))
     {
         functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use5_functor", nullptr);
         if (functor_name)
@@ -1329,7 +1329,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     }
 
     // 6th Custom Use action
-    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use6_functor_mode", 0))
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use6_functor_mode", mode))
     {
         functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use6_functor", nullptr);
         if (functor_name)
@@ -1348,7 +1348,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     }
 
     // 7th Custom Use action
-    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use7_functor_mode", 0))
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use7_functor_mode", mode))
     {
         functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use7_functor", nullptr);
         if (functor_name)
@@ -1367,7 +1367,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     }
 
     // 8th Custom Use action
-    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use8_functor_mode", 0))
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use8_functor_mode", mode))
     {
         functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use8_functor", nullptr);
         if (functor_name)
@@ -1386,7 +1386,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     }
 
     // 9th Custom Use action
-    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use9_functor_mode", 0))
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use9_functor_mode", mode))
     {
         functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use9_functor", nullptr);
         if (functor_name)
@@ -1405,7 +1405,7 @@ void CUIActorMenu::PropertiesBoxForUsing(PIItem item, bool& b_show)
     }
 
     // 10th Custom Use action
-    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use10_functor_mode", 0))
+    if (mode == READ_IF_EXISTS(pSettings, r_u32, GO->cNameSect(), "use10_functor_mode", mode))
     {
         functor_name = READ_IF_EXISTS(pSettings, r_string, GO->cNameSect(), "use10_functor", nullptr);
         if (functor_name)
