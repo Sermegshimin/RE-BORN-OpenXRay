@@ -126,6 +126,7 @@ void CUIPdaWnd::Init()
     AttachChild(UITabControl);
     CUIXmlInit::InitTabControl(uiXml, "tab", 0, UITabControl, true, ShadowOfChernobylMode);
     UITabControl->SetMessageTarget(this);
+    UITabControl->SetAcceleratorsMode(true);
 
     constexpr std::tuple<pcstr, pcstr> known_soc_tab_ids[] =
     {
@@ -329,15 +330,21 @@ void CUIPdaWnd::Show_SecondTaskWnd(bool status)
     }
 }
 
-void CUIPdaWnd::Show_MapLegendWnd(bool status)
+void CUIPdaWnd::Show_MapWnd(bool status)
 {
-    if (pUITaskWnd)
+    if (pUIMapWnd)
     {
         if (status)
-        {
-            SetActiveSubdialog("eptTasks");
-        }
-        pUITaskWnd->ShowMapLegend(status);
+            SetActiveSubdialog("eptMap");
+    }
+}
+
+void CUIPdaWnd::Show_ContactsWnd(bool status)
+{
+    if (true) // XXX: replace with contacts wnd pointer
+    {
+        if (status)
+            SetActiveSubdialog("eptContacts");
     }
 }
 
@@ -435,25 +442,11 @@ bool CUIPdaWnd::OnKeyboardAction(int dik, EUIMessages keyboard_action)
 
     switch (GetBindedAction(dik, EKeyContext::UI))
     {
-    case kUI_TAB_PREV:
-        if (WINDOW_KEY_PRESSED == keyboard_action)
-            UITabControl->SetNextActiveTab(false, true);
-        return true;
-
-    case kUI_TAB_NEXT:
-        if (WINDOW_KEY_PRESSED == keyboard_action)
-            UITabControl->SetNextActiveTab(true, true);
-        return true;
-
-    hide_pda:
     case kUI_BACK:
         if (WINDOW_KEY_PRESSED == keyboard_action)
             HideDialog();
         return true;
     }
-
-    if (IsBinded(kACTIVE_JOBS, dik))
-        goto hide_pda;
 
     return false;
 }
