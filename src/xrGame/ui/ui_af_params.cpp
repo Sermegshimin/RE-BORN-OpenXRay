@@ -207,9 +207,9 @@ void CUIArtefactParams::SetInfo(const CInventoryItem& pInvItem)
             val *= pInvItem.GetCondition();
             setValue(m_restore_item[id], val);
         }
-
-        SetHeight(h);
     }
+
+     SetHeight(h);
 }
 
 /// ----------------------------------------------------------------
