@@ -165,46 +165,51 @@ void CUIArtefactParams::SetInfo(const CInventoryItem& pInvItem)
         setValue(m_disp_condition, pInvItem.GetCondition());
     //-Alundaio
 
-    for (auto [id, immunity_section, immunity_caption, magnitude, sign_inverse, unit] : af_immunity)
+    u32 art_mode = pInvItem.m_mode;
+
+    if (art_mode != 0)
     {
-        if (!m_immunity_item[id])
-            continue;
-
-        shared_str const& hit_absorbation_sect = pSettings->r_string(af_section, "hit_absorbation_sect");
-        float val = pSettings->r_float(hit_absorbation_sect, immunity_section);
-        if (fis_zero(val))
-            continue;
-
-        val *= pInvItem.GetCondition();
-        const float max_val = actor->conditions().GetZoneMaxPower(static_cast<ALife::EInfluenceType>(id));
-        val /= max_val;
-        setValue(m_immunity_item[id], val);
-    }
-
-    if (m_additional_weight)
-    {
-        float val = pSettings->r_float(af_section, "additional_inventory_weight");
-        if (!fis_zero(val))
+        for (auto [id, immunity_section, immunity_caption, magnitude, sign_inverse, unit] : af_immunity)
         {
+            if (!m_immunity_item[id])
+                continue;
+
+            shared_str const& hit_absorbation_sect = pSettings->r_string(af_section, "hit_absorbation_sect");
+            float val = pSettings->r_float(hit_absorbation_sect, immunity_section);
+            if (fis_zero(val))
+                continue;
+
             val *= pInvItem.GetCondition();
-            setValue(m_additional_weight, val);
+            const float max_val = actor->conditions().GetZoneMaxPower(static_cast<ALife::EInfluenceType>(id));
+            val /= max_val;
+            setValue(m_immunity_item[id], val);
         }
+
+        if (m_additional_weight)
+        {
+            float val = pSettings->r_float(af_section, "additional_inventory_weight");
+            if (!fis_zero(val))
+            {
+                val *= pInvItem.GetCondition();
+                setValue(m_additional_weight, val);
+            }
+        }
+
+        for (auto [id, restore_section, restore_caption, magnitude, sign_inverse, unit] : af_restore)
+        {
+            if (!m_restore_item[id])
+                continue;
+
+            float val = pSettings->r_float(af_section, restore_section);
+            if (fis_zero(val))
+                continue;
+
+            val *= pInvItem.GetCondition();
+            setValue(m_restore_item[id], val);
+        }
+
+        SetHeight(h);
     }
-
-    for (auto [id, restore_section, restore_caption, magnitude, sign_inverse, unit] : af_restore)
-    {
-        if (!m_restore_item[id])
-            continue;
-
-        float val = pSettings->r_float(af_section, restore_section);
-        if (fis_zero(val))
-            continue;
-
-        val *= pInvItem.GetCondition();
-        setValue(m_restore_item[id], val);
-    }
-
-    SetHeight(h);
 }
 
 /// ----------------------------------------------------------------
