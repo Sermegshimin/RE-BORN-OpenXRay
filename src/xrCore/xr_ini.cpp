@@ -453,7 +453,7 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
             }
             else
             {
-                xrDebug::Fatal(DEBUG_INFO, "Recursive parents for section '%s' was found.", root_element);
+                xrDebug::Fatal(DEBUG_INFO, "Recursive parents for section '%s' was found.", root_element.c_str());
             }
 
             if (!section_exist(sec_name))
@@ -468,7 +468,7 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
         }
         else
         {
-            xrDebug::Fatal(DEBUG_INFO, "Undefined parent '%s' was found.", element);
+            xrDebug::Fatal(DEBUG_INFO, "Undefined parent '%s' was found.", element.c_str());
         }
         return total_count;
     };
@@ -512,7 +512,7 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                 {
                     auto I = std::lower_bound(DATA.begin(), DATA.end(), *it->first, sect_pred);
                     if (I != DATA.end() && (*I)->Name == it->first)
-                        xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' found.", *it->first);
+                        xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' found.", *it->first.c_str());
                     DATA.insert(I, it->second);
                 }
             }
@@ -520,7 +520,7 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
             {
                 auto I = std::lower_bound(DATA.begin(), DATA.end(), *it->first, sect_pred);
                 if (I != DATA.end() && (*I)->Name == it->first)
-                    xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' found.", *it->first);
+                    xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' found.", *it->first.c_str());
                 DATA.insert(I, it->second);
             }
         }
@@ -894,7 +894,7 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                         auto I = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
                         if (I != DATA.end() && (*I)->Name == Current->Name)
                         {
-                            xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added.", *Current->Name);
+                            xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added.", *Current->Name.c_str());
                         }
                         DATA.insert(I, Current);
                     }
@@ -1082,7 +1082,7 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                 auto I = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
                 if (I != DATA.end() && (*I)->Name == Current->Name)
                 {
-                    xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added.", *Current->Name);
+                    xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added.", *Current->Name.c_str());
                 }
                 DATA.insert(I, Current);
             }
@@ -1132,7 +1132,7 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
             auto I = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
             if (I != DATA.end() && (*I)->Name == Current->Name)
             {
-                xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added by the CreationData.", *Current->Name);
+                xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added by the CreationData.", *Current->Name.c_str());
             }
             DATA.insert(I, Current);
         }
