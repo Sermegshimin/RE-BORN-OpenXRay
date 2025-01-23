@@ -22,7 +22,13 @@ CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* itm)
 {
     m_pData = (void*)itm;
 
-    inherited::SetShader(InventoryUtilities::GetEquipmentIconsShader());
+    if (pSettings->line_exist(itm->m_section_id.c_str(), "icons_texture"))
+    {
+        LPCSTR icons_texture = pSettings->r_string(itm->m_section_id.c_str(), "icons_texture");
+        inherited::SetShader(InventoryUtilities::GetCustomIconsShader(icons_texture));
+    }
+    else
+        inherited::SetShader(InventoryUtilities::GetEquipmentIconsShader());
 
     m_grid_size.set(itm->GetInvGridRect().rb);
     Frect rect;
