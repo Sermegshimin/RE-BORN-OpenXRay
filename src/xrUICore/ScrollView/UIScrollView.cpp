@@ -26,8 +26,31 @@ CUIScrollView::~CUIScrollView() { Clear(); }
 void CUIScrollView::SendMessage(CUIWindow* pWnd, s16 msg, void* pData)
 {
     CUIWndCallback::OnEvent(pWnd, msg, pData);
-    if (CHILD_CHANGED_SIZE == msg && m_pad->IsChild(pWnd))
-        m_flags.set(eNeedRecalc, true);
+
+    switch (msg)
+    {
+    case CHILD_CHANGED_SIZE:
+    {
+        if (m_pad->IsChild(pWnd))
+            m_flags.set(eNeedRecalc, true);
+        break;
+    }
+    case WINDOW_FOCUS_RECEIVED:
+    {
+        if (UI().Focus().GetFocused() != pWnd)
+            break;
+
+        if (const auto& item = pWnd->GetWindowBeforeParent(m_pad);
+            item && item != GetSelected())
+        {
+            const auto prevPos = GetCurrentScrollPos();
+            ScrollToWindow(item);
+            if (prevPos != GetCurrentScrollPos())
+                UI().GetUICursor().WarpToWindow(item);
+        }
+        break;
+    }
+    } // switch (msg)
 }
 
 void CUIScrollView::ForceUpdate() { m_flags.set(eNeedRecalc, true); }
@@ -115,7 +138,11 @@ void CUIScrollView::Update()
     if (m_flags.test(eNeedRecalc))
         RecalcSize();
 
-    if (const auto focused = CursorOverWindow() ? UI().Focus().GetFocused() : nullptr)
+    CUIWindow* focused{};
+    if (m_pad->CursorOverWindow() && !m_flags.test(eItemsSelectabe))
+        focused = UI().Focus().GetFocused();
+
+    if (focused)
     {
         const auto scrollItem = focused->GetWindowBeforeParent(m_pad);
 
@@ -124,9 +151,6 @@ void CUIScrollView::Update()
             const auto prevPos = GetCurrentScrollPos();
 
             ScrollToWindow(scrollItem);
-
-            if (m_flags.test(eItemsSelectabe))
-                scrollItem->OnMouseDown(MOUSE_1);
 
             if (prevPos != GetCurrentScrollPos())
                 UI().GetUICursor().WarpToWindow(focused);
@@ -306,46 +330,6 @@ bool CUIScrollView::OnMouseAction(float x, float y, EUIMessages mouse_action)
     return res;
 }
 
-bool CUIScrollView::OnKeyboardAction(int dik, EUIMessages keyboard_action)
-{
-    if (inherited::OnKeyboardAction(dik, keyboard_action))
-        return true;
-
-    /*if (CursorOverWindow() && keyboard_action == WINDOW_KEY_PRESSED)
-    {
-        switch (GetBindedAction(dik, EKeyContext::UI))
-        {
-        case kUI_MOVE_UP:
-            return SelectNext(false, false);
-        case kUI_MOVE_DOWN:
-            return SelectNext(true, false);
-        }
-    }*/
-
-    return false;
-}
-
-bool CUIScrollView::OnControllerAction(int axis, float x, float y, EUIMessages controller_action)
-{
-    if (inherited::OnControllerAction(axis, x, y, controller_action))
-        return true;
-
-    /*if (CursorOverWindow())
-    {
-        if (IsBinded(kUI_MOVE, axis, EKeyContext::UI))
-        {
-            if (fis_zero(x))
-            {
-                if (y > 0)
-                    return SelectNext(true, false);
-                return SelectNext(false, false);
-            }
-        }
-    }*/
-
-    return false;
-}
-
 int CUIScrollView::GetMinScrollPos() const { return m_VScrollBar->GetMinRange(); }
 int CUIScrollView::GetMaxScrollPos() const { return m_VScrollBar->GetMaxRange(); }
 int CUIScrollView::GetCurrentScrollPos() const { return m_VScrollBar->GetScrollPos(); }
@@ -380,7 +364,7 @@ void CUIScrollView::ScrollToEnd()
 
 void CUIScrollView::ScrollToWindow(CUIWindow* pWnd, float center_y_ratio /*= 0.5f*/)
 {
-    R_ASSERT2_CURE(pWnd->GetParent() == m_pad, "Requested window to scroll to doesn't belong to the scroll view", return);
+    R_ASSERT2_CURE(pWnd && pWnd->GetParent() == m_pad, "Requested window to scroll to doesn't belong to the scroll view", return);
 
     if (m_flags.test(eNeedRecalc))
         RecalcSize();
@@ -449,84 +433,19 @@ void CUIScrollView::SetSelected(CUIWindow* w)
     }
 }
 
-bool CUIScrollView::SelectNext(bool next, bool loop)
+bool CUIScrollView::SelectFirst()
 {
-    if (Empty())
+    ScrollToBegin();
+
+    if (Empty() || !m_flags.test(eItemsSelectabe))
         return false;
 
-    auto& focus = UI().Focus();
-
-    bool found = false; // iterator of the current selected item found
-    CUIWindow* item = nullptr; // item to be selected
-
-    CUIWindow* currentSelected = nullptr;
-    if (!m_flags.test(eItemsSelectabe) && focus.GetFocused())
-        currentSelected = focus.GetFocused()->GetWindowBeforeParent(m_pad);
-
-    // Iterate forward or backward
-    auto       it    = next ? Items().cbegin() : Items().cend()   - 1;
-    const auto ite   = next ? Items().cend()   : Items().cbegin() - 1;
-
-    while (it != ite)
-    {
-        if (found)
-        {
-            item = *it;
-            break;
-        }
-
-        if (m_flags.test(eItemsSelectabe))
-        {
-            if (smart_cast<CUISelectable*>(*it)->GetSelected())
-            {
-                found = true;
-                currentSelected = *it;
-            }
-        }
-        else if (*it == currentSelected)
-            found = true;
-
-        next ? ++it : --it;
-    }
-
-    // If no item is selected, always select first
-    if (!found)
-    {
-        item = Items().front();
-    }
-    // Found current selected, but it is last
-    else if (!item && loop)
-    {
-        item = next ? Items().front() : Items().back();
-    }
-
-    if (item)
-    {
-        // Update CUIScrollView native logic
-        ScrollToWindow(item);
-        if (m_flags.test(eItemsSelectabe))
-            item->OnMouseDown(MOUSE_1);
-
-        // Update focus system:
-        // Set item as focused, if possible
-        if (focus.IsRegistered(item))
-            focus.SetFocused(item);
-        else
-        {
-            // Set any suitable child as focused
-            item->ProcessFunctor([&](const CUIWindow* wnd)
-            {
-                if (focus.IsRegistered(wnd))
-                {
-                    focus.SetFocused(wnd);
-                    return true;
-                }
-                return false;
-            });
-        }
-        return true;
-    }
-    return false;
+    const auto first = Items()[0];
+    ScrollToWindow(first);
+    SetSelected(first);
+    if (UI().Focus().IsRegistered(first))
+        UI().Focus().SetFocused(first);
+    return true;
 }
 
 CUIWindow* CUIScrollView::GetSelected()

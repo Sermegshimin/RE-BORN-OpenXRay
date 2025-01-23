@@ -199,13 +199,15 @@ void execUserScript()
     Console->ExecuteScript(Console->ConfigFile);
 }
 
-constexpr pcstr APPLICATION_STARTUP = "Application startup";
-constexpr pcstr APPLICATION_SHUTDOWN = "Application shutdown";
+constexpr pcstr FRAME_MARK_APPLICATION_STARTUP = "Application startup";
+constexpr pcstr FRAME_MARK_APPLICATION_SHUTDOWN = "Application shutdown";
+constexpr pcstr FRAME_MARK_APPLICATION_RUN = "Application run";
 
 CApplication::CApplication(pcstr commandLine, GameModule* game)
 {
+    TracySetProgramName("OpenXRay");
     Threading::SetCurrentThreadName("Primary thread");
-    FrameMarkStart(APPLICATION_STARTUP);
+    FrameMarkStart(FRAME_MARK_APPLICATION_STARTUP);
 
     if (strstr(commandLine, "-dedicated"))
         GEnv.isDedicatedServer = true;
@@ -213,7 +215,10 @@ CApplication::CApplication(pcstr commandLine, GameModule* game)
     xrDebug::Initialize(commandLine);
     {
         ZoneScopedN("SDL_Init");
-        R_ASSERT3(SDL_Init(SDL_INIT_VIDEO) == 0, "Unable to initialize SDL", SDL_GetError());
+        u32 flags = SDL_INIT_VIDEO;
+        if (!strstr(commandLine, "-no_gamepad"))
+            flags |= SDL_INIT_GAMECONTROLLER;
+        R_ASSERT3(SDL_Init(flags) == 0, "Unable to initialize SDL", SDL_GetError());
     }
 
 #ifdef XR_PLATFORM_WINDOWS
@@ -240,6 +245,13 @@ CApplication::CApplication(pcstr commandLine, GameModule* game)
         Engine.Sound.CreateDevicesList();
     });
 
+#ifdef XR_PLATFORM_WINDOWS
+    const auto& createRendererList = TaskManager::AddTask([]
+    {
+        Engine.External.CreateRendererList();
+    });
+#endif
+
     pcstr fsltx = "-fsltx ";
     string_path fsgame = "";
     if (strstr(commandLine, fsltx))
@@ -263,6 +275,11 @@ CApplication::CApplication(pcstr commandLine, GameModule* game)
     TaskScheduler->Wait(inputTask);
     InitConsole();
 
+#ifdef XR_PLATFORM_WINDOWS
+    TaskScheduler->Wait(createRendererList);
+#else
+    Engine.External.CreateRendererList();
+#endif
     Engine.Initialize(game);
     Device.Initialize();
 
@@ -300,12 +317,12 @@ CApplication::CApplication(pcstr commandLine, GameModule* game)
     if (!g_pGamePersistent)
         Console->Show();
 
-    FrameMarkEnd(APPLICATION_STARTUP);
+    FrameMarkEnd(FRAME_MARK_APPLICATION_STARTUP);
 }
 
 CApplication::~CApplication()
 {
-    FrameMarkStart(APPLICATION_SHUTDOWN);
+    FrameMarkStart(FRAME_MARK_APPLICATION_SHUTDOWN);
 
     // Destroy APP
     if (m_game_module)
@@ -353,7 +370,7 @@ CApplication::~CApplication()
     }
 
     xrDebug::Finalize();
-    FrameMarkEnd(APPLICATION_SHUTDOWN);
+    FrameMarkEnd(FRAME_MARK_APPLICATION_SHUTDOWN);
 }
 
 int CApplication::Run()
@@ -363,6 +380,7 @@ int CApplication::Run()
 
     while (!SDL_QuitRequested()) // SDL_PumpEvents is here
     {
+        FrameMarkStart(FRAME_MARK_APPLICATION_RUN);
         bool canCallActivate = false;
         bool shouldActivate = false;
 
@@ -424,7 +442,7 @@ int CApplication::Run()
         Device.ProcessFrame();
 
         UpdateDiscordStatus();
-        FrameMarkNamed("Primary thread");
+        FrameMarkEnd(FRAME_MARK_APPLICATION_RUN);
     } // while (!SDL_QuitRequested())
 
     Device.Shutdown();

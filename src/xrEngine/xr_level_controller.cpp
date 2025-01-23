@@ -201,7 +201,6 @@ game_action actions[] =
     { "pda_map_show_legend",    kPDA_MAP_SHOW_LEGEND,       _sp,    EKeyContext::PDA },
 
     { "pda_filter_toggle",      kPDA_FILTER_TOGGLE,         _sp,    EKeyContext::PDA },
-    { "pda_tasks_toggle",       kPDA_TASKS_TOGGLE,          _sp,    EKeyContext::PDA },
 
     // Talk:
     { "talk_switch_to_trade",   kTALK_SWITCH_TO_TRADE,      _sp,    EKeyContext::Talk },
@@ -1038,13 +1037,12 @@ class CCC_DefControls : public CCC_UnBindAll
         { kPDA_MAP_SHOW_LEGEND,     { SDL_SCANCODE_V,       SDL_SCANCODE_KP_MULTIPLY,   XR_CONTROLLER_BUTTON_INVALID } },
 
         { kPDA_FILTER_TOGGLE,       { SDL_SCANCODE_B,       SDL_SCANCODE_UNKNOWN,       XR_CONTROLLER_BUTTON_Y } },
-        { kPDA_TASKS_TOGGLE,        { SDL_SCANCODE_TAB,     SDL_SCANCODE_UNKNOWN,       XR_CONTROLLER_BUTTON_X } },
 
         // Talk:
         { kTALK_SWITCH_TO_TRADE,    { SDL_SCANCODE_X,       SDL_SCANCODE_UNKNOWN,       XR_CONTROLLER_BUTTON_X } },
         { kTALK_LOG_SCROLL,         { SDL_SCANCODE_UNKNOWN, SDL_SCANCODE_UNKNOWN,       XR_CONTROLLER_AXIS_LEFT } },
-        { kTALK_LOG_SCROLL_UP,      { SDL_SCANCODE_E,       SDL_SCANCODE_PAGEUP,        XR_CONTROLLER_AXIS_TRIGGER_LEFT } },
-        { kTALK_LOG_SCROLL_DOWN,    { SDL_SCANCODE_Q,       SDL_SCANCODE_PAGEDOWN,      XR_CONTROLLER_AXIS_TRIGGER_RIGHT } },
+        { kTALK_LOG_SCROLL_UP,      { SDL_SCANCODE_Q,       SDL_SCANCODE_PAGEUP,        SDL_SCANCODE_UNKNOWN } },
+        { kTALK_LOG_SCROLL_DOWN,    { SDL_SCANCODE_E,       SDL_SCANCODE_PAGEDOWN,      SDL_SCANCODE_UNKNOWN } },
 
         { kEDITOR,                  { SDL_SCANCODE_F10,     SDL_SCANCODE_UNKNOWN,       XR_CONTROLLER_BUTTON_INVALID } },
     };

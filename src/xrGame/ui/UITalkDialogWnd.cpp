@@ -155,10 +155,14 @@ void CUITalkDialogWnd::Show()
     inherited::Enable(true);
 
     ResetAll();
+
+    UI().Focus().LockToWindow(UIQuestionsList);
 }
 
 void CUITalkDialogWnd::Hide()
 {
+    if (UI().Focus().GetLocker() == UIQuestionsList)
+        UI().Focus().Unlock();
     InventoryUtilities::SendInfoToActor("ui_talk_hide");
     InventoryUtilities::SendInfoToLuaScripts("ui_talk_hide");
     inherited::Show(false);
@@ -216,8 +220,7 @@ void CUITalkDialogWnd::AddQuestion(LPCSTR str, LPCSTR value, int number, bool b_
     }
     if (b_finalizer)
     {
-        itm->m_text->SetAccelerator(kQUIT, false, 2);
-        itm->m_text->SetAccelerator(kUSE, false, 3);
+        itm->m_text->SetAccelerator(kUI_BACK, false, 2);
     }
 
     itm->SetWindowName("question_item");
@@ -340,9 +343,9 @@ void CUITalkDialogWnd::UpdateButtonsLayout(bool b_disable_break, bool trade_enab
 void CUITalkDialogWnd::TryScrollAnswersList(bool down)
 {
     if (down)
-        UIAnswersList->ScrollBar()->TryScrollDec();
-    else
         UIAnswersList->ScrollBar()->TryScrollInc();
+    else
+        UIAnswersList->ScrollBar()->TryScrollDec();
 }
 
 void CUITalkDialogWnd::FocusOnNextQuestion(bool next, bool loop) const

@@ -374,11 +374,14 @@ void CUIWindow::SetKeyboardCapture(CUIWindow* pChildWindow, bool capture_status)
 
     if (capture_status)
     {
-        //оповестить дочернее окно о потере фокуса клавиатуры
-        if (NULL != m_pKeyboardCapturer)
-            m_pKeyboardCapturer->SendMessage(this, WINDOW_KEYBOARD_CAPTURE_LOST);
+        if (m_pKeyboardCapturer != pChildWindow)
+        {
+            //оповестить дочернее окно о потере фокуса клавиатуры
+            if (m_pKeyboardCapturer)
+                m_pKeyboardCapturer->SendMessage(this, WINDOW_KEYBOARD_CAPTURE_LOST);
 
-        m_pKeyboardCapturer = pChildWindow;
+            m_pKeyboardCapturer = pChildWindow;
+        }
     }
     else
         m_pKeyboardCapturer = NULL;
@@ -423,7 +426,12 @@ CUIWindow* CUIWindow::GetChildMouseHandler()
 }
 
 //для перевода окна и потомков в исходное состояние
-void CUIWindow::Reset() { m_pMouseCapturer = NULL; }
+void CUIWindow::Reset()
+{
+    m_pMouseCapturer    = nullptr;
+    m_pKeyboardCapturer = nullptr;
+}
+
 void CUIWindow::ResetAll()
 {
     for (auto it = m_ChildWndList.begin(); m_ChildWndList.end() != it; ++it)
@@ -529,10 +537,13 @@ bool CUIWindow::FillDebugTree(const CUIDebugState& debugState)
         flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet;
 
     const bool open = ImGui::TreeNodeEx(this, flags, "%s (%s)", WindowName().c_str(), GetDebugType());
+
+    const bool examined = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
+    if (examined)
+        debugState.examined = this;
     if (ImGui::IsItemClicked())
         debugState.select(this);
 
-    const bool examined = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
     if (debugState.settings.drawWndRects && (IsShown() || examined))
     {
         const auto& focus = UI().Focus();

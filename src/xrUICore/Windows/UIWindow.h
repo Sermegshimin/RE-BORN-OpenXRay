@@ -47,30 +47,21 @@ public:
         return nullptr;
     }
 
-    template <typename F>
-    void ProcessFunctor(const F& functor) const
-    {
-        static_assert(std::is_invocable_r_v<bool, F, CUIWindow*>);
-
-        for (auto it = m_ChildWndList.rbegin(); it != m_ChildWndList.rend(); ++it)
-        {
-            if (!(*it)->IsEnabled())
-                continue;
-
-            if (functor(*it))
-                break;
-            (*it)->ProcessFunctor(functor);
-        }
-    }
-
     //получить окно самого верхнего уровня
     [[nodiscard]]
     CUIWindow* GetTop()
     {
-        if (m_pParentWnd == NULL)
+        if (m_pParentWnd == nullptr)
             return this;
-        else
-            return m_pParentWnd->GetTop();
+        return m_pParentWnd->GetTop();
+    }
+    //получить окно самого верхнего уровня
+    [[nodiscard]]
+    const CUIWindow* GetTop() const
+    {
+        if (m_pParentWnd == nullptr)
+            return this;
+        return m_pParentWnd->GetTop();
     }
     CUIWindow* GetCurrentMouseHandler();
     CUIWindow* GetChildMouseHandler();
@@ -93,7 +84,7 @@ public:
     //захватить/освободить мышь окном
     //сообщение посылается дочерним окном родительскому
     void SetCapture(CUIWindow* pChildWindow, bool capture_status);
-    CUIWindow* GetMouseCapturer() { return m_pMouseCapturer; }
+    CUIWindow* GetMouseCapturer() const { return m_pMouseCapturer; }
 
     //окошко, которому пересылаются сообщения,
     //если NULL, то шлем на GetParent()
@@ -101,6 +92,7 @@ public:
     CUIWindow* GetMessageTarget();
 
     void SetKeyboardCapture(CUIWindow* pChildWindow, bool capture_status);
+    CUIWindow* GetKeyboardCapturer() const { return m_pKeyboardCapturer; }
 
     //обработка сообщений не предусмотреных стандартными обработчиками
     //ф-ция должна переопределяться
@@ -114,19 +106,26 @@ public:
     bool IsEnabled() const { return m_bIsEnabled; }
 
     [[nodiscard]]
-    bool IsFocusValuable(const CUIWindow* parent) const
+    bool IsFocusValuable(const CUIWindow* top_parent, const CUIWindow* locker) const
     {
-        bool ok;
+        bool valuable;
+        bool child_of_locker{};
         const CUIWindow* it = this;
+
         for (;; it = it->GetParent())
         {
-            ok = it->IsShown() && it->IsEnabled();
-            if (!ok || !it->GetParent())
+            valuable = it->IsShown() && it->IsEnabled();
+            if (it == locker)
+                child_of_locker = true;
+            if (!valuable || !it->GetParent())
                 break;
         }
-        if (parent && parent != it)
+
+        if (locker && !child_of_locker)
             return false;
-        return ok;
+        if (top_parent && top_parent != it)
+            return false;
+        return valuable;
     }
 
     //убрать/показать окно и его дочерние окна
