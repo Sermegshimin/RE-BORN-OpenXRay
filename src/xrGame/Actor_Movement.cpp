@@ -187,9 +187,9 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector& vControlAccel, float& Ju
     if (mstate_wf & mcBack)
         vControlAccel.z += -1;
     if (mstate_wf & mcLStrafe)
-        vControlAccel.x += -1;
+        mstate_wf & mcSprint ? vControlAccel.x += -0.5 : vControlAccel.x += -1;
     if (mstate_wf & mcRStrafe)
-        vControlAccel.x += 1;
+        mstate_wf & mcSprint ? vControlAccel.x += 0.5 : vControlAccel.x += 1;
 
     CPHMovementControl::EEnvironment curr_env = character_physics_support()->movement()->Environment();
     if (curr_env == CPHMovementControl::peOnGround || curr_env == CPHMovementControl::peAtWall)
@@ -265,7 +265,7 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector& vControlAccel, float& Ju
             mstate_real |= mcSprint;
         else
             mstate_real &= ~mcSprint;
-        if (!(mstate_real & (mcFwd | mcLStrafe | mcRStrafe)) || mstate_real & (mcCrouch | mcClimb) ||
+        if (!(mstate_real & (mcFwd)) || mstate_real & (mcCrouch | mcClimb) ||
             !isActorAccelerated(mstate_wf, IsZoomAimingMode()))
         {
             mstate_real &= ~mcSprint;
@@ -305,7 +305,9 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector& vControlAccel, float& Ju
 
                 if (mstate_real & (mcLStrafe | mcRStrafe) && !(mstate_real & mcCrouch))
                 {
-                    if (bAccelerated)
+                    if (mstate_real & mcSprint)
+                        scale *= m_fSprint_StrafeFactor;
+                    else if (bAccelerated)
                         scale *= m_fRun_StrafeFactor;
                     else
                         scale *= m_fWalk_StrafeFactor;
@@ -595,8 +597,11 @@ bool CActor::CanRun()
 
 bool CActor::CanSprint()
 {
-    bool can_Sprint = CanAccelerate() && !conditions().IsCantSprint() && Game().PlayerCanSprint(this) && CanRun() &&
-        !(mstate_real & mcLStrafe || mstate_real & mcRStrafe) && InventoryAllowSprint();
+    bool can_Sprint = CanAccelerate() && !conditions().IsCantSprint() && Game().PlayerCanSprint(this) &&
+        CanRun() /* && !(mstate_real & mcLStrafe || mstate_real & mcRStrafe)*/ && InventoryAllowSprint();
+
+    if ((mstate_real & mcLStrafe || mstate_real & mcRStrafe) && !(mstate_real & mcFwd))
+        can_Sprint = false;
 
     return can_Sprint && (m_block_sprint_counter <= 0);
 }

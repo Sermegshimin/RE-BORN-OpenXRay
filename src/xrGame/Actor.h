@@ -437,6 +437,7 @@ public:
 
     float m_fWalk_StrafeFactor;
     float m_fRun_StrafeFactor;
+    float m_fSprint_StrafeFactor;
 
 public:
     Fvector GetMovementSpeed() { return NET_SavedAccel; };

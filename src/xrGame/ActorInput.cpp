@@ -309,13 +309,11 @@ void CActor::IR_OnKeyboardHold(int cmd)
     case kACCEL: mstate_wishful |= mcAccel; break;
     case kL_STRAFE:
     {
-        mstate_wishful &= ~mcSprint;
         mstate_wishful |= mcLStrafe;
         break;
     }
     case kR_STRAFE:
     {
-        mstate_wishful &= ~mcSprint;
         mstate_wishful |= mcRStrafe;
         break;
     }
