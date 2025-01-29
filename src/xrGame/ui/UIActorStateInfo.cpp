@@ -70,14 +70,14 @@ void ui_actor_state_wnd::init_from_xml(CUIXml& xml, LPCSTR path)
     m_state[stt_armor]->init_from_xml(xml, "armor_state", false);
 
     m_state[stt_main]->init_from_xml(xml, "main_sensor", false);
-    m_state[stt_fire]->init_from_xml(xml, "fire_sensor");
-    m_state[stt_radia]->init_from_xml(xml, "radia_sensor");
-    m_state[stt_acid]->init_from_xml(xml, "acid_sensor");
-    m_state[stt_psi]->init_from_xml(xml, "psi_sensor");
-    m_state[stt_wound]->init_from_xml(xml, "wound_sensor", false);
-    m_state[stt_fire_wound]->init_from_xml(xml, "fire_wound_sensor", false);
-    m_state[stt_shock]->init_from_xml(xml, "shock_sensor", false);
-    m_state[stt_power]->init_from_xml(xml, "power_sensor", false);
+    m_state[stt_fire]->init_from_xml_number_only(xml, "fire_sensor");
+    m_state[stt_radia]->init_from_xml_number_only(xml, "radia_sensor");
+    m_state[stt_acid]->init_from_xml_number_only(xml, "acid_sensor");
+    m_state[stt_psi]->init_from_xml_number_only(xml, "psi_sensor");
+    m_state[stt_wound]->init_from_xml_number_only(xml, "wound_sensor");
+    m_state[stt_fire_wound]->init_from_xml_number_only(xml, "fire_wound_sensor");
+    m_state[stt_shock]->init_from_xml_number_only(xml, "shock_sensor");
+    m_state[stt_power]->init_from_xml_number_only(xml, "power_sensor");
 
     xml.SetLocalRoot(stored_root);
 }
@@ -95,14 +95,16 @@ void ui_actor_state_wnd::UpdateActorInfo(CInventoryOwner* owner)
     // show stamina icon
     value = conditions.GetPower();
     m_state[stt_stamina]->set_progress(value);
+    m_state[stt_stamina]->set_number(value * 100);
 
     value = actor->GetRestoreSpeed(ALife::ePowerRestoreSpeed);
     m_state[stt_stamina]->set_text(value); // 0..0.99
 
     // show health icon
     value = conditions.GetHealth();
-    value = floor(value * 55) / 55; // number of sticks in progress bar
+    value = floor(value * 100) / 100; // number of sticks in progress bar (55)
     m_state[stt_health]->set_progress(value);
+    m_state[stt_health]->set_number(value * 100);
 
     // show bleeding icon
     value = conditions.BleedingSpeed();
@@ -142,14 +144,14 @@ void ui_actor_state_wnd::UpdateActorInfo(CInventoryOwner* owner)
     PIItem itm = actor->inventory().ItemFromSlot(HELMET_SLOT);
     CHelmet* helmet = smart_cast<CHelmet*>(itm);
 
-    m_state[stt_fire]->set_progress(0.0f);
-    m_state[stt_radia]->set_progress(0.0f);
-    m_state[stt_acid]->set_progress(0.0f);
-    m_state[stt_psi]->set_progress(0.0f);
-    m_state[stt_wound]->set_progress(0.0f);
-    m_state[stt_fire_wound]->set_progress(0.0f);
-    m_state[stt_shock]->set_progress(0.0f);
-    m_state[stt_power]->set_progress(0.0f);
+    m_state[stt_fire]->set_number(0.0f);
+    m_state[stt_radia]->set_number(0.0f);
+    m_state[stt_acid]->set_number(0.0f);
+    m_state[stt_psi]->set_number(0.0f);
+    m_state[stt_wound]->set_number(0.0f);
+    m_state[stt_fire_wound]->set_number(0.0f);
+    m_state[stt_shock]->set_number(0.0f);
+    m_state[stt_power]->set_number(0.0f);
 
     float burn_value = 0.0f;
     float radi_value = 0.0f;
@@ -229,42 +231,42 @@ void ui_actor_state_wnd::UpdateActorInfo(CInventoryOwner* owner)
     // fire burn protection progress bar
     {
         const float max_power = getProtection(burn_value, ALife::eHitTypeBurn);
-        update_round_states(stt_fire, burn_value, max_power);
+        update_number(stt_fire, burn_value, max_power);
     }
     // radiation protection progress bar
     {
         const float max_power = getProtection(radi_value, ALife::eHitTypeRadiation);
-        update_round_states(stt_radia, radi_value, max_power);
+        update_number(stt_radia, radi_value, max_power);
     }
     // chemical burn protection progress bar
     {
         const float max_power = getProtection(cmbn_value, ALife::eHitTypeChemicalBurn);
-        update_round_states(stt_acid, cmbn_value, max_power);
+        update_number(stt_acid, cmbn_value, max_power);
     }
     // telepathic protection progress bar
     {
         const float max_power = getProtection(tele_value, ALife::eHitTypeTelepatic);
-        update_round_states(stt_psi, tele_value, max_power);
+        update_number(stt_psi, tele_value, max_power);
     }
     // wound protection progress bar
     {
         const float max_power = conditions.GetMaxWoundProtection();
-        update_round_states(stt_wound, woun_value, max_power);
+        update_number(stt_wound, woun_value, max_power);
     }
     // shock protection progress bar
     {
         const float max_power = getProtection(shoc_value, ALife::eHitTypeShock);
-        update_round_states(stt_shock, shoc_value, max_power);
+        update_number(stt_shock, shoc_value, max_power);
     }
     // fire wound protection progress bar
     {
         const float max_power = conditions.GetMaxFireWoundProtection();
-        update_round_states(stt_fire_wound, fwou_value, max_power);
+        update_number(stt_fire_wound, fwou_value, max_power);
     }
     // power restore speed progress bar
     {
         value = actor->GetRestoreSpeed(ALife::ePowerRestoreSpeed) / conditions.GetMaxPowerRestoreSpeed();
-        update_round_states(stt_power, value, 1.f);
+        update_number(stt_power, value, 1.f);
     }
 
     // -----------------------------------------------------------------------------------
@@ -274,19 +276,13 @@ void ui_actor_state_wnd::UpdateActorInfo(CInventoryOwner* owner)
     UpdateHitZone();
 }
 
-void ui_actor_state_wnd::update_round_states(EStateType stt_type, float initial, float max_power)
+void ui_actor_state_wnd::update_number(EStateType stt_type, float initial, float max_power)
 {
     auto state = m_state[stt_type];
 
-    const float progress = floor(initial / max_power * 31) / 31; // number of sticks in progress bar
-    const float arrow = initial / max_power; //  = 0..1
+    const float number = floor(initial / max_power * 100) / 100; // max number
 
-    if (!state->set_progress(progress))
-    {
-        //state->set_progress_shape(arrow);
-        state->set_arrow(arrow); // 0..1
-        state->set_text(arrow); // 0..1
-    }
+    state->set_number(number);
 }
 
 void ui_actor_state_wnd::UpdateHitZone()
@@ -378,6 +374,50 @@ void ui_actor_state_item::init_from_xml(CUIXml& xml, LPCSTR path, bool critical 
         m_magnitude = xml.ReadAttribFlt("icon3", 0, "magnitude", 1.0f);
         m_static3->TextItemControl()->SetText("");
     }
+    if (xml.NavigateToNode("number", 0))
+    {
+        m_number = UIHelper::CreateStatic(xml, "number", this);
+    }
+    set_arrow(0.0f);
+    xml.SetLocalRoot(stored_root);
+}
+
+void ui_actor_state_item::init_from_xml_number_only(CUIXml& xml, LPCSTR path)
+{
+    if (!CUIXmlInit::InitWindow(xml, path, 0, this))
+        return;
+
+    XML_NODE stored_root = xml.GetLocalRoot();
+    XML_NODE new_root = xml.NavigateToNode(path, 0);
+    xml.SetLocalRoot(new_root);
+
+    LPCSTR hint_text = xml.Read("hint_text", 0, "no hint");
+    set_hint_text_ST(hint_text);
+
+    set_hint_delay((u32)xml.ReadAttribInt("hint_text", 0, "delay"));
+
+    if (xml.NavigateToNode("icon", 0))
+    {
+        m_static = UIHelper::CreateStatic(xml, "icon", this);
+        m_magnitude = xml.ReadAttribFlt("icon", 0, "magnitude", 1.0f);
+        m_static->TextItemControl()->SetText("");
+    }
+    if (xml.NavigateToNode("icon2", 0))
+    {
+        m_static2 = UIHelper::CreateStatic(xml, "icon2", this);
+        m_magnitude = xml.ReadAttribFlt("icon2", 0, "magnitude", 1.0f);
+        m_static2->TextItemControl()->SetText("");
+    }
+    if (xml.NavigateToNode("icon3", 0))
+    {
+        m_static3 = UIHelper::CreateStatic(xml, "icon3", this);
+        m_magnitude = xml.ReadAttribFlt("icon3", 0, "magnitude", 1.0f);
+        m_static3->TextItemControl()->SetText("");
+    }
+    if (xml.NavigateToNode("number", 0))
+    {
+        m_number = UIHelper::CreateStatic(xml, "number", this);
+    }
     set_arrow(0.0f);
     xml.SetLocalRoot(stored_root);
 }
@@ -392,8 +432,8 @@ bool ui_actor_state_item::set_text(float value)
     if (!m_static)
         return false;
 
-    int v = (int)(value * m_magnitude + 0.49f); // m_magnitude=100
-    clamp(v, 0, 99);
+    int v = (int)(value * m_magnitude + 0.49f);
+    clamp(v, 0, 100);
     string32 text_res;
     xr_sprintf(text_res, sizeof(text_res), "%d", v);
     m_static->TextItemControl()->SetText(text_res);
@@ -406,6 +446,19 @@ bool ui_actor_state_item::set_progress(float value)
         return false;
 
     m_progress->SetProgressPos(value);
+    return true;
+}
+
+bool ui_actor_state_item::set_number(float value)
+{
+    if (!m_number)
+        return false;
+
+    int v = (int)(value * m_magnitude + 0.49f);
+    clamp(v, 0, 100);
+    string32 text_res;
+    xr_sprintf(text_res, sizeof(text_res), "%d", v);
+    m_number->TextItemControl()->SetText(text_res);
     return true;
 }
 

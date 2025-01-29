@@ -64,6 +64,7 @@ public:
 
 private:
     void update_round_states(EStateType stt_type, float initial, float max_power);
+    void update_number(EStateType stt_type, float initial, float max_power);
 };
 
 class ui_actor_state_item final : public UIHintWindow
@@ -74,6 +75,7 @@ protected:
     CUIStatic* m_static{};
     CUIStatic* m_static2{};
     CUIStatic* m_static3{};
+    CUIStatic* m_number{}; //DrSergei - numbers in addition to bars
     CUIProgressBar* m_progress{};
     CUIProgressShape* m_sensor{};
     UI_Arrow* m_arrow{};
@@ -85,8 +87,10 @@ public:
 
     void init_from_xml(CUIXml& xml, LPCSTR path, bool critical = true);
     void init_from_xml_plain(CUIXml& xml, LPCSTR path);
+    void init_from_xml_number_only(CUIXml& xml, pcstr path);
 
     bool set_text(float value); // 0..1
+    bool set_number(float value); //DrSergei
     bool set_progress(float value); // 0..1
     bool set_progress_shape(float value); // 0..1
     int set_arrow(float value); // 0..1
