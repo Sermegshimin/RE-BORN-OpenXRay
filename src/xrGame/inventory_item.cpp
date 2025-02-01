@@ -404,6 +404,7 @@ void CInventoryItem::save(NET_Packet& packet)
 {
     packet.w_u16(m_ItemCurrPlace.value);
     packet.w_float(m_fCondition);
+    packet.w_u32(m_mode);
     //--	save_data				(m_upgrades, packet);
 
     if (object().H_Parent())
@@ -797,6 +798,7 @@ void CInventoryItem::load(IReader& packet)
 {
     m_ItemCurrPlace.value = packet.r_u16();
     m_fCondition = packet.r_float();
+    m_mode = packet.r_u32();
 
     //--	load_data( m_upgrades, packet );
     //--	install_loaded_upgrades();
