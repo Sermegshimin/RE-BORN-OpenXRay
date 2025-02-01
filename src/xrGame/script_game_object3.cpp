@@ -45,6 +45,9 @@
 #include "CharacterPhysicsSupport.h"
 #include "player_hud.h"
 #include "eatable_item.h"
+//DrSergei
+#include "mutant_part_item.h"
+//-DrSergei
 #include "xrScriptEngine/script_callback_ex.h"
 #include "xrEngine/Feel_Touch.h"
 #include "WeaponAmmo.h"
@@ -1590,6 +1593,68 @@ u8 CScriptGameObject::GetMaxUses()
         return 0;
 
     return eItm->GetMaxUses();
+}
+
+void CScriptGameObject::SetQuality(u8 quality)
+{
+    CInventoryItem* IItm = object().cast_inventory_item();
+    if (!IItm)
+        return;
+
+    CEatableMutantPartItem* EmpItm = IItm->cast_eatable_mutant_part_item();
+    CGeneralMutantPartItem* mPItm = IItm->cast_general_mutant_part_item();
+    
+    if (EmpItm)
+        EmpItm->SetQuality(quality);
+    
+    if (mPItm) 
+        mPItm->SetQuality(quality);
+}
+
+u8 CScriptGameObject::GetQuality()
+{
+    CInventoryItem* IItm = object().cast_inventory_item();
+    if (!IItm)
+        return 0;
+
+    CEatableMutantPartItem* EmpItm = IItm->cast_eatable_mutant_part_item();
+    CGeneralMutantPartItem* mPItm = IItm->cast_general_mutant_part_item();
+
+    if (EmpItm)
+        return EmpItm->GetQuality();
+
+    if (mPItm)
+        return mPItm->GetQuality();
+
+    return 0;
+}
+
+void CScriptGameObject::SetFreshness(float value)
+{
+    CInventoryItem* IItm = object().cast_inventory_item();
+    if (!IItm)
+        return;
+
+    CEatableMutantPartItem* EmpItm = IItm->cast_eatable_mutant_part_item();
+
+    if (!EmpItm)
+        return;
+
+    EmpItm->UpdateFreshness(value);
+}
+
+float CScriptGameObject::GetFreshness()
+{
+    CInventoryItem* IItm = object().cast_inventory_item();
+    if (!IItm)
+        return -1.f;
+
+    CEatableMutantPartItem* EmpItm = IItm->cast_eatable_mutant_part_item();
+
+    if (!EmpItm)
+        return -1.f;
+
+    return EmpItm->GetFreshness();
 }
 
 void CScriptGameObject::IterateFeelTouch(luabind::functor<void> functor)

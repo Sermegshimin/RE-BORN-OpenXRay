@@ -224,6 +224,14 @@ DECLARE_SPECIALIZATION(CEatableItem, CInventoryItem, cast_eatable_item);
 #undef cast_type_list
 #define cast_type_list save_cast_list(CEatableItem, CInventoryItem)
 
+DECLARE_SPECIALIZATION(CEatableMutantPartItem, CInventoryItem, cast_eatable_mutant_part_item)
+#undef cast_type_list
+#define cast_type_list save_cast_list(CEatableMutantPartItem, CInventoryItem)
+
+DECLARE_SPECIALIZATION(CGeneralMutantPartItem, CInventoryItem, cast_general_mutant_part_item)
+#undef cast_type_list
+#define cast_type_list save_cast_list(CGeneralMutantPartItem, CInventoryItem)
+
 DECLARE_SPECIALIZATION(CBaseMonster, CGameObject, cast_base_monster);
 #undef cast_type_list
 #define cast_type_list save_cast_list(CBaseMonster, CGameObject)

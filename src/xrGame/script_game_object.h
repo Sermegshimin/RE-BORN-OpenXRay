@@ -924,6 +924,12 @@ public:
     u8 GetRemainingUses();
     u8 GetMaxUses();
 
+    // Mutant parts
+    void SetQuality(u8 quality);
+    u8 GetQuality();
+    void SetFreshness(float value);
+    float GetFreshness();
+
     // Phantom
     void PhantomSetEnemy(CScriptGameObject*);
 

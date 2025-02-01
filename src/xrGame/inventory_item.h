@@ -35,6 +35,8 @@ class CWeapon;
 class CPhysicsShellHolder;
 class NET_Packet;
 class CEatableItem;
+class CGeneralMutantPartItem;
+class CEatableMutantPartItem;
 struct SPHNetState;
 struct net_update_IItem;
 
@@ -277,6 +279,8 @@ public:
     virtual CAttachableItem* cast_attachable_item() { return this; }
     virtual CPhysicsShellHolder* cast_physics_shell_holder() { return 0; }
     virtual CEatableItem* cast_eatable_item() { return 0; }
+    virtual CEatableMutantPartItem* cast_eatable_mutant_part_item() { return 0; }
+    virtual CGeneralMutantPartItem* cast_general_mutant_part_item() { return 0; }
     virtual CWeapon* cast_weapon() { return 0; }
     virtual CFoodItem* cast_food_item() { return 0; }
     virtual CMissile* cast_missile() { return 0; }
