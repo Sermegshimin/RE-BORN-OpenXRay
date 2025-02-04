@@ -159,6 +159,18 @@ void CUIItemInfo::InitItemInfo(Fvector2 pos, Fvector2 size, LPCSTR xml_name)
     InitItemInfo(xml_name);
 }
 
+pcstr CUIItemInfo::AddToDescription(CInventoryItem& pInvItem, pcstr m_item_description)
+{
+    luabind::functor<pcstr> functorGetDescription;
+    if (GEnv.ScriptEngine->functor("ui_utilities.add_to_description", functorGetDescription))
+    {
+        CGameObject* GO = pInvItem.cast_game_object();
+        if (GO)
+            return functorGetDescription(GO->lua_game_object(), m_item_description);
+    }
+    return m_item_description;
+}
+
 void CUIItemInfo::InitItem(CUICellItem* pCellItem, CInventoryItem* pCompareItem, u32 item_price, LPCSTR trade_tip)
 {
     if (!pCellItem)
@@ -274,7 +286,7 @@ void CUIItemInfo::InitItem(CUICellItem* pCellItem, CInventoryItem* pCompareItem,
             pItem->SetFont(m_desc_info.pDescFont);
             pItem->SetWidth(UIDesc->GetDesiredChildWidth());
             pItem->SetTextComplexMode(true);
-            pItem->SetText(*pInvItem->ItemDescription());
+            pItem->SetText(AddToDescription(*pInvItem, *pInvItem->ItemDescription()));
             pItem->AdjustHeightToText();
             UIDesc->AddWindow(pItem, true);
         }

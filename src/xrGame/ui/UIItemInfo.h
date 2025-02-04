@@ -47,6 +47,8 @@ public:
     void TryAddOutfitInfo(CInventoryItem& pInvItem, CInventoryItem* pCompareItem);
     void TryAddUpgradeInfo(CInventoryItem& pInvItem);
     void TryAddBoosterInfo(CInventoryItem& pInvItem);
+    
+    pcstr AddToDescription(CInventoryItem& pInvItem, pcstr m_item_description);
 
     virtual void Draw();
     bool m_b_FitToHeight;
