@@ -1,12 +1,12 @@
 #pragma once
 
 
-#include "eatable_item.h"
+#include "eatable_item_object.h"
 
-class CEatableMutantPartItem : public CEatableItem
+class CEatableMutantPartItem : public CEatableItemObject
 {
 private:
-    typedef CEatableItem inherited;
+    typedef CEatableItemObject inherited;
 
 protected:
     u8 m_iQuality;
@@ -24,10 +24,10 @@ public:
     float GetFreshness() const { return m_fFreshness; };
 };
 
-class CGeneralMutantPartItem : public CInventoryItem
+class CGeneralMutantPartItem : public CInventoryItemObject
 {
 private:
-    typedef CInventoryItem inherited;
+    typedef CInventoryItemObject inherited;
 
 protected:
     u8 m_iQuality;
