@@ -28,6 +28,7 @@
 #include "medkit.h"
 #include "antirad.h"
 #include "FoodItem.h"
+#include "mutant_part_item.h"
 #include "BottleItem.h"
 #include "ExplosiveItem.h"
 #include "InventoryBox.h"
@@ -127,6 +128,10 @@ SCRIPT_EXPORT(CF1, (CGameObject, CExplosive),
         class_<CAntirad, CGameObject>("CAntirad")
             .def(constructor<>()),
         class_<CFoodItem, CGameObject>("CFoodItem")
+            .def(constructor<>()),
+        class_<CEatableMutantPartItem, CGameObject>("CEatableMutantPartItem")
+            .def(constructor<>()),
+        class_<CGeneralMutantPartItem, CGameObject>("CGeneralMutantPartItem")
             .def(constructor<>()),
         class_<CBottleItem, CGameObject>("CBottleItem")
             .def(constructor<>()),

@@ -101,6 +101,7 @@
 #include "medkit.h"
 #include "antirad.h"
 #include "FoodItem.h"
+#include "mutant_part_item.h"
 #include "BottleItem.h"
 #include "ExplosiveItem.h"
 
@@ -315,6 +316,8 @@ void CObjectFactory::register_classes()
     ADD(CMedkit, CSE_ALifeItem, CLSID_IITEM_BANDAGE, "obj_bandage");
     ADD(CAntirad, CSE_ALifeItem, CLSID_IITEM_ANTIRAD, "obj_antirad");
     ADD(CFoodItem, CSE_ALifeItem, CLSID_IITEM_FOOD, "obj_food");
+    ADD(CEatableMutantPartItem, CSE_ALifeItem, CLSID_IITEM_MUTPART_E, "obj_mutpart_e");
+    ADD(CGeneralMutantPartItem, CSE_ALifeItem, CLSID_IITEM_MUTPART_G, "obj_mutpart_g");
     ADD(CBottleItem, CSE_ALifeItem, CLSID_IITEM_BOTTLE, "obj_bottle");
     ADD(CExplosiveItem, CSE_ALifeItemExplosive, CLSID_IITEM_EXPLOSIVE, "obj_explosive");
 
