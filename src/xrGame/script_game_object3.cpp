@@ -1629,7 +1629,7 @@ u8 CScriptGameObject::GetQuality()
     return 0;
 }
 
-void CScriptGameObject::SetFreshness(float value)
+void CScriptGameObject::UpdateFreshness(float value)
 {
     CInventoryItem* IItm = object().cast_inventory_item();
     if (!IItm)

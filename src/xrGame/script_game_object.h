@@ -927,7 +927,7 @@ public:
     // Mutant parts
     void SetQuality(u8 quality);
     u8 GetQuality();
-    void SetFreshness(float value);
+    void UpdateFreshness(float value);
     float GetFreshness();
 
     // Phantom

@@ -490,7 +490,7 @@ luabind::class_<CScriptGameObject>& script_register_game_object2(luabind::class_
         //For MutantPartItem classes
         .def("set_quality", &CScriptGameObject::SetQuality)
         .def("get_quality", &CScriptGameObject::GetQuality)
-        .def("set_freshness", &CScriptGameObject::SetFreshness)
+        .def("update_freshness", &CScriptGameObject::UpdateFreshness)
         .def("get_freshness", &CScriptGameObject::GetFreshness)
 
         // Phantom
