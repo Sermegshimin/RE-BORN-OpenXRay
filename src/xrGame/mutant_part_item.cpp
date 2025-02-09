@@ -19,7 +19,7 @@ void CEatableMutantPartItem::load(IReader& packet)
     inherited::load(packet);
 
     m_iQuality = packet.r_u8();
-    m_fFreshness = packet.r_u8();
+    m_fFreshness = packet.r_float();
 }
 
 void CEatableMutantPartItem::save(NET_Packet& packet)
