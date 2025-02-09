@@ -97,8 +97,6 @@ luabind::class_<CScriptGameObject>& script_register_game_object1(luabind::class_
         .def("condition", &CScriptGameObject::GetCondition)
         .def("set_condition", &CScriptGameObject::SetCondition)
         .def("update_inventory_info", &CScriptGameObject::UpdateInvInfo)
-        .def("update_weight", &CScriptGameObject::UpdateWeight)
-        .def("update_cost", &CScriptGameObject::UpdateCost)
         .def("set_mode", &CScriptGameObject::SetMode)
         .def("get_mode", &CScriptGameObject::GetMode)
         .def("death_time", &CScriptGameObject::DeathTime)

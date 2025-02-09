@@ -90,24 +90,14 @@ void CInventoryItem::Load(LPCSTR section)
         self->GetSpatialData().type |= STYPE_VISIBLEFORAI;
 
     m_section_id._set(section);
-    m_name = StringTable().translate(pSettings->r_string(section, INV_NAME_KEY));
-    m_nameShort = StringTable().translate(pSettings->r_string(section, INV_NAME_SHORT_KEY));
-
-    m_weight = pSettings->r_float(section, "inv_weight");
+   
+    UpdateInventoryInfo(std::to_string(m_mode).c_str());
     R_ASSERT(m_weight >= 0.f);
-
-    m_cost = pSettings->r_u32(section, "cost");
 
     // Assets follow initial SOC system, where slots start from -1
     u32 sl = pSettings->read_if_exists<u32>(section, "slot", NO_ACTIVE_SLOT - 1);
     // Engine is following new system since COP: slots start from 0
     m_ItemCurrPlace.base_slot_id = sl + 1;
-
-    // Description
-    if (pSettings->line_exist(section, DESCRIPTION_KEY))
-        m_Description = StringTable().translate(pSettings->r_string(section, DESCRIPTION_KEY));
-    else
-        m_Description = "";
 
     m_flags.set(Fbelt, READ_IF_EXISTS(pSettings, r_bool, section, "belt", FALSE));
     m_can_trade = READ_IF_EXISTS(pSettings, r_bool, section, "can_trade", TRUE);
@@ -139,48 +129,48 @@ void CInventoryItem::ReloadNames()
         m_Description = "";
 }
 
-void CInventoryItem::UpdateInventoryInfo(pcstr phase, bool const_name)
+void CInventoryItem::UpdateInventoryInfo(pcstr phase)
 {
-    if (!const_name)
+    
+    string32 inv_name_string = "inv_name", inv_name_short_string = "inv_name_short", description_string = "description",
+             weight_string = "inv_weight", cost_string = "cost";
+
+    if (phase != "0")
     {
-        string32 inv_name_string = "inv_name", inv_name_short_string = "inv_name_short";
         xr_strcat(inv_name_string, phase);
-        if (pSettings->line_exist(m_object->cNameSect(), inv_name_string))
-            m_name = StringTable().translate(pSettings->r_string(m_object->cNameSect(), inv_name_string));
-        else
-            m_name = StringTable().translate(pSettings->r_string(m_object->cNameSect(), "inv_name"));
         xr_strcat(inv_name_short_string, phase);
-        if (pSettings->line_exist(m_object->cNameSect(), inv_name_short_string))
-            m_nameShort = StringTable().translate(pSettings->r_string(m_object->cNameSect(), inv_name_short_string));
-        else
-            m_nameShort = StringTable().translate(pSettings->r_string(m_object->cNameSect(), "inv_name_short"));
+        xr_strcat(description_string, phase);
+        xr_strcat(weight_string, phase);
+        xr_strcat(cost_string, phase);
     }
-    string32 description_string = "description";
-    strcat(description_string, phase);
+    
+    if (pSettings->line_exist(m_object->cNameSect(), inv_name_string))
+        m_name = StringTable().translate(pSettings->r_string(m_object->cNameSect(), inv_name_string));
+    else
+        m_name = StringTable().translate(pSettings->r_string(m_object->cNameSect(), "inv_name"));
+    
+    if (pSettings->line_exist(m_object->cNameSect(), inv_name_short_string))
+        m_nameShort = StringTable().translate(pSettings->r_string(m_object->cNameSect(), inv_name_short_string));
+    else
+        m_nameShort = StringTable().translate(pSettings->r_string(m_object->cNameSect(), "inv_name_short"));
+    
+    
     if (pSettings->line_exist(m_object->cNameSect(), description_string))
         m_Description = StringTable().translate(pSettings->r_string(m_object->cNameSect(), description_string));
     else
-        m_Description = "";
-}
+        m_Description = StringTable().translate(pSettings->r_string(m_object->cNameSect(), "description"));
 
-void CInventoryItem::UpdateWeight(pcstr phase)
-{
-    string32 weight_string = "inv_weight";
-    strcat(weight_string, phase);
+    
     if (pSettings->line_exist(m_object->cNameSect(), weight_string))
         m_weight = pSettings->r_float(m_object->cNameSect(), weight_string);
     else
-        m_cost = pSettings->r_u32(m_object->cNameSect(), "inv_weight");    
-}
+        m_weight = pSettings->r_float(m_object->cNameSect(), "inv_weight");
 
-void CInventoryItem::UpdateCost(pcstr phase)
-{
-    string32 cost_string = "cost";
-    strcat(cost_string, phase);
+    
     if (pSettings->line_exist(m_object->cNameSect(), cost_string))
         m_cost = pSettings->r_u32(m_object->cNameSect(), cost_string);
     else
-        m_cost = pSettings->r_u32(m_object->cNameSect(), "cost");  
+        m_cost = pSettings->r_u32(m_object->cNameSect(), "cost");
 }
 
 void CInventoryItem::ChangeCondition(float fDeltaCondition)

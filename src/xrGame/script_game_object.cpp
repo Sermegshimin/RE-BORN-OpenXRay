@@ -495,7 +495,7 @@ void CScriptGameObject::SetCondition(float val)
     inventory_item->ChangeCondition(val);
 }
 
-bool CScriptGameObject::UpdateInvInfo(pcstr phase, bool const_name)
+bool CScriptGameObject::UpdateInvInfo(pcstr phase)
 { 
     CInventoryItem* inventory_item = smart_cast<CInventoryItem*>(&object());
     if (!inventory_item)
@@ -503,33 +503,7 @@ bool CScriptGameObject::UpdateInvInfo(pcstr phase, bool const_name)
         GEnv.ScriptEngine->script_log(LuaMessageType::Error, "CSciptEntity : cannot access class member UpdateInvInfo!");
         return false;
     }
-    inventory_item->UpdateInventoryInfo(phase, const_name);
-    return true;
-}
-
-bool CScriptGameObject::UpdateWeight(pcstr phase)
-{
-    CInventoryItem* inventory_item = smart_cast<CInventoryItem*>(&object());
-    if (!inventory_item)
-    {
-        GEnv.ScriptEngine->script_log(
-            LuaMessageType::Error, "CSciptEntity : cannot access class member UpdateWeight!");
-        return false;
-    }
-    inventory_item->UpdateWeight(phase);
-    return true;
-}
-
-bool CScriptGameObject::UpdateCost(pcstr phase)
-{
-    CInventoryItem* inventory_item = smart_cast<CInventoryItem*>(&object());
-    if (!inventory_item)
-    {
-        GEnv.ScriptEngine->script_log(
-            LuaMessageType::Error, "CSciptEntity : cannot access class member UpdateCost!");
-        return false;
-    }
-    inventory_item->UpdateCost(phase);
+    inventory_item->UpdateInventoryInfo(phase);
     return true;
 }
 

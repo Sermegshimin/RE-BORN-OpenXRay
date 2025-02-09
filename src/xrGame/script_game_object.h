@@ -182,9 +182,7 @@ public:
     u32 Cost() const;
     float GetCondition() const;
     void SetCondition(float val);
-    bool UpdateInvInfo(pcstr phase, bool const_name);
-    bool UpdateWeight(pcstr phase);
-    bool UpdateCost(pcstr phase);
+    bool UpdateInvInfo(pcstr phase);
     bool SetMode(u32 mode);
     u32 GetMode() const;
 

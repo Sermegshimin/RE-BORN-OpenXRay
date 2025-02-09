@@ -98,9 +98,7 @@ public:
 public:
     virtual void Load(LPCSTR section);
     void ReloadNames();
-    void UpdateInventoryInfo(pcstr phase, bool const_name);
-    void UpdateWeight(pcstr phase);
-    void UpdateCost(pcstr phase);
+    void UpdateInventoryInfo(pcstr phase);
     void SetMode(u32 mode) { m_mode = mode; }
 
     u32 GetMode() const { return m_mode; } 
