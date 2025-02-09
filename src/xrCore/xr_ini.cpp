@@ -891,10 +891,10 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
                     // store previous section
                     if (!StarLoad)
                     {
-                        auto I = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
+                        auto I = std::lower_bound(DATA.begin(), DATA.end(), Current->Name.c_str(), sect_pred);
                         if (I != DATA.end() && (*I)->Name == Current->Name)
                         {
-                            xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added.", *Current->Name.c_str());
+                            xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added.", Current->Name.c_str());
                         }
                         DATA.insert(I, Current);
                     }
@@ -1079,10 +1079,10 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
         {
             if (!StarLoad)
             {
-                auto I = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
+                auto I = std::lower_bound(DATA.begin(), DATA.end(), Current->Name.c_str(), sect_pred);
                 if (I != DATA.end() && (*I)->Name == Current->Name)
                 {
-                    xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added.", *Current->Name.c_str());
+                    xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added.", Current->Name.c_str());
                 }
                 DATA.insert(I, Current);
             }
@@ -1129,10 +1129,10 @@ void CInifile::Load(IReader* F, pcstr path, allow_include_func_t allow_include_f
 
                 insert_item(Current, N);
             }
-            auto I = std::lower_bound(DATA.begin(), DATA.end(), *Current->Name, sect_pred);
+            auto I = std::lower_bound(DATA.begin(), DATA.end(), Current->Name.c_str(), sect_pred);
             if (I != DATA.end() && (*I)->Name == Current->Name)
             {
-                xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added by the CreationData.", *Current->Name.c_str());
+                xrDebug::Fatal(DEBUG_INFO, "Duplicate section '%s' is added by the CreationData.", Current->Name.c_str());
             }
             DATA.insert(I, Current);
         }
