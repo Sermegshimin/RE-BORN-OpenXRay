@@ -581,6 +581,14 @@ void CUIMainIngameWnd::UpdatePickUpItem()
     int m_iXPos = pSettings->r_u32(sect_name, "inv_grid_x");
     int m_iYPos = pSettings->r_u32(sect_name, "inv_grid_y");
 
+    if (pSettings->line_exist(sect_name.c_str(), "icons_texture"))
+    {
+        pcstr icons_texture = pSettings->r_string(sect_name.c_str(), "icons_texture");
+        UIPickUpItemIcon->SetShader(InventoryUtilities::GetCustomIconsShader(icons_texture));
+    }
+    else
+        UIPickUpItemIcon->SetShader(GetEquipmentIconsShader());
+
     float scale_x = m_iPickUpItemIconWidth / float(m_iGridWidth * INV_GRID_WIDTH);
 
     float scale_y = m_iPickUpItemIconHeight / float(m_iGridHeight * INV_GRID_HEIGHT);
@@ -872,7 +880,14 @@ void CUIMainIngameWnd::UpdateQuickSlots()
                 wnd->TextItemControl()->SetText(str);
                 wnd->Show(true);
 
-                slot->SetShader(InventoryUtilities::GetEquipmentIconsShader());
+                if (pSettings->line_exist(item_name.c_str(), "icons_texture"))
+                {
+                    pcstr icons_texture = pSettings->r_string(item_name.c_str(), "icons_texture");
+                    slot->SetShader(InventoryUtilities::GetCustomIconsShader(icons_texture));
+                }
+                else
+                    slot->SetShader(InventoryUtilities::GetEquipmentIconsShader());
+
                 Frect texture_rect;
                 texture_rect.x1 = pSettings->r_float(item_name, "inv_grid_x") * INV_GRID_WIDTH;
                 texture_rect.y1 = pSettings->r_float(item_name, "inv_grid_y") * INV_GRID_HEIGHT;
