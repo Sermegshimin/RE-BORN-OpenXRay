@@ -96,14 +96,14 @@ void CUICursor::SetUICursorPosition(Fvector2 pos)
     std::ignore = pInput->iSetMousePos(p);
 }
 
-void CUICursor::UpdateCursorPosition(int _dx, int _dy)
+void CUICursor::UpdateCursorPosition(Fvector2 pos)
 {
     vPrevPos = vPos;
     if (pInput->IsExclusiveMode() || !m_bound_to_system_cursor)
     {
-        float sens = 1.0f;
-        vPos.x += (float)_dx * sens * correction.x;
-        vPos.y += (float)_dy * sens * correction.y;
+        constexpr float sens = 1.0f;
+        vPos.x += pos.x * sens * correction.x;
+        vPos.y += pos.y * sens * correction.y;
     }
     else
     {
@@ -116,28 +116,27 @@ void CUICursor::UpdateCursorPosition(int _dx, int _dy)
     clamp(vPos.y, 0.f, UI_BASE_HEIGHT);
 }
 
-void CUICursor::WarpToWindow(CUIWindow* wnd, bool change_visibility /*= true*/)
+void CUICursor::WarpToWindow(const CUIWindow* wnd, bool center /*= false*/)
 {
-    // When change_visibility is true, call Show/Hide anyway
-    // to update autohide data
     if (!wnd)
     {
-        if (change_visibility)
-            Hide();
+        SetUICursorPosition({ UI_BASE_WIDTH / 2.0f, UI_BASE_HEIGHT / 2.0f });
         return;
     }
-
-    if (change_visibility)
-        Show();
-
-    if (!IsVisible())
-        return;
 
     Fvector2 pos;
     wnd->GetAbsolutePos(pos);
     Fvector2 size = wnd->GetWndSize();
-    const Fvector2 sizeOfThird = Fvector2(size).div(3);
-    pos.add(size).sub(sizeOfThird);
+    if (center)
+    {
+        size.mul(0.5f);
+        pos.add(size);
+    }
+    else
+    {
+        const Fvector2 sizeOfThird = Fvector2(size).div(3.0f);
+        pos.add(size).sub(sizeOfThird);
+    }
     SetUICursorPosition(pos);
 }
 

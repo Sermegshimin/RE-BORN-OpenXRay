@@ -28,8 +28,8 @@ public:
     void OnDeviceReset() override;
     void OnUIReset() override;
 
-    void WarpToWindow(CUIWindow* wnd, bool change_visibility = true);
-    void UpdateCursorPosition(int _dx, int _dy);
+    void WarpToWindow(const CUIWindow* wnd, bool center = false);
+    void UpdateCursorPosition(Fvector2 pos);
 
     void SetUICursorPosition(Fvector2 pos);
 

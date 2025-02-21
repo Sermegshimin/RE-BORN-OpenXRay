@@ -490,6 +490,15 @@ void CUIHudStatesWnd::SetAmmoIcon(const shared_str& sect_name)
     m_ui_weapon_icon->GetUIStaticItem().SetTextureRect(texture_rect);
     m_ui_weapon_icon->SetStretchTexture(true);
 
+    if (pSettings->line_exist(sect_name, "icons_texture"))
+    {
+        pcstr icons_texture = pSettings->r_string(sect_name, "icons_texture");
+        m_ui_weapon_icon->SetShader(InventoryUtilities::GetCustomIconsShader(icons_texture));
+    }
+    else
+        m_ui_weapon_icon->SetShader(InventoryUtilities::GetEquipmentIconsShader());
+
+
     float w, h;
     if (ShadowOfChernobylMode)
     {

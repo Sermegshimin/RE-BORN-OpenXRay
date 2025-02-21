@@ -2230,6 +2230,9 @@
     <Filter Include="AI\AMonsters\common\monster states\Rest\Squad\Rest">
       <UniqueIdentifier>{4946196d-1f2b-4e07-9207-f0789b2528fc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Client\Objects\inventory\MutantPartItem">
+      <UniqueIdentifier>{bdf20287-09cf-4f72-9a2e-3d9d4051cc0b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mt_config.h">
@@ -6314,6 +6317,9 @@
     <ClInclude Include="ui\UIWheelMenu.h">
       <Filter>UI\Common\MainIngame</Filter>
     </ClInclude>
+    <ClInclude Include="mutant_part_item.h">
+      <Filter>Core\Client\Objects\inventory\MutantPartItem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="damage_manager.cpp">
@@ -9533,6 +9539,9 @@
     </ClCompile>
     <ClCompile Include="ui\UIWheelMenu.cpp">
       <Filter>UI\Common\MainIngame</Filter>
+    </ClCompile>
+    <ClCompile Include="mutant_part_item.cpp">
+      <Filter>Core\Client\Objects\inventory\MutantPartItem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

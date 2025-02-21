@@ -38,6 +38,7 @@ constexpr std::tuple<ALife::EConditionRestoreType, cpcstr, cpcstr, float, bool, 
     //{ ALife::EConditionRestoreType,   "section",                  "caption",          magnitude, sign_inverse, "unit" }
     { ALife::eHealthRestoreSpeed,       "health_restore_speed",     "ui_inv_health",    1.0f,      false,        "%" },
     { ALife::eSatietyRestoreSpeed,      "satiety_restore_speed",    "ui_inv_satiety",   1.0f,      false,        "%" },
+    { ALife::eThirstRestoreSpeed,       "thirst_restore_speed",     "ui_inv_thirst",    1.0f,      false,        "%" },
     { ALife::ePowerRestoreSpeed,        "power_restore_speed",      "ui_inv_power",     1.0f,      false,        nullptr },
     { ALife::eBleedingRestoreSpeed,     "bleeding_restore_speed",   "ui_inv_bleeding", -1.0f,      true,         "%" },
     { ALife::eRadiationRestoreSpeed,    "radiation_restore_speed",  "ui_inv_radiation", 1.0f,      true,         nullptr },
@@ -164,46 +165,51 @@ void CUIArtefactParams::SetInfo(const CInventoryItem& pInvItem)
         setValue(m_disp_condition, pInvItem.GetCondition());
     //-Alundaio
 
-    for (auto [id, immunity_section, immunity_caption, magnitude, sign_inverse, unit] : af_immunity)
+    u32 art_mode = pInvItem.m_mode;
+
+    if (art_mode != 0)
     {
-        if (!m_immunity_item[id])
-            continue;
-
-        shared_str const& hit_absorbation_sect = pSettings->r_string(af_section, "hit_absorbation_sect");
-        float val = pSettings->r_float(hit_absorbation_sect, immunity_section);
-        if (fis_zero(val))
-            continue;
-
-        val *= pInvItem.GetCondition();
-        const float max_val = actor->conditions().GetZoneMaxPower(static_cast<ALife::EInfluenceType>(id));
-        val /= max_val;
-        setValue(m_immunity_item[id], val);
-    }
-
-    if (m_additional_weight)
-    {
-        float val = pSettings->r_float(af_section, "additional_inventory_weight");
-        if (!fis_zero(val))
+        for (auto [id, immunity_section, immunity_caption, magnitude, sign_inverse, unit] : af_immunity)
         {
+            if (!m_immunity_item[id])
+                continue;
+
+            shared_str const& hit_absorbation_sect = pSettings->r_string(af_section, "hit_absorbation_sect");
+            float val = pSettings->r_float(hit_absorbation_sect, immunity_section);
+            if (fis_zero(val))
+                continue;
+
             val *= pInvItem.GetCondition();
-            setValue(m_additional_weight, val);
+            const float max_val = actor->conditions().GetZoneMaxPower(static_cast<ALife::EInfluenceType>(id));
+            val /= max_val;
+            setValue(m_immunity_item[id], val);
+        }
+
+        if (m_additional_weight)
+        {
+            float val = pSettings->r_float(af_section, "additional_inventory_weight");
+            if (!fis_zero(val))
+            {
+                val *= pInvItem.GetCondition();
+                setValue(m_additional_weight, val);
+            }
+        }
+
+        for (auto [id, restore_section, restore_caption, magnitude, sign_inverse, unit] : af_restore)
+        {
+            if (!m_restore_item[id])
+                continue;
+
+            float val = pSettings->r_float(af_section, restore_section);
+            if (fis_zero(val))
+                continue;
+
+            val *= pInvItem.GetCondition();
+            setValue(m_restore_item[id], val);
         }
     }
 
-    for (auto [id, restore_section, restore_caption, magnitude, sign_inverse, unit] : af_restore)
-    {
-        if (!m_restore_item[id])
-            continue;
-
-        float val = pSettings->r_float(af_section, restore_section);
-        if (fis_zero(val))
-            continue;
-
-        val *= pInvItem.GetCondition();
-        setValue(m_restore_item[id], val);
-    }
-
-    SetHeight(h);
+     SetHeight(h);
 }
 
 /// ----------------------------------------------------------------

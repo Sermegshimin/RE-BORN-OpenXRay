@@ -182,6 +182,9 @@ public:
     u32 Cost() const;
     float GetCondition() const;
     void SetCondition(float val);
+    bool UpdateInvInfo(pcstr phase);
+    bool SetMode(u32 mode);
+    u32 GetMode() const;
 
     // CEntity
     _DECLARE_FUNCTION10(DeathTime, u32);
@@ -918,6 +921,12 @@ public:
     void SetRemainingUses(u8 value);
     u8 GetRemainingUses();
     u8 GetMaxUses();
+
+    // Mutant parts
+    void SetQuality(u8 quality);
+    u8 GetQuality();
+    void UpdateFreshness(float value);
+    float GetFreshness();
 
     // Phantom
     void PhantomSetEnemy(CScriptGameObject*);

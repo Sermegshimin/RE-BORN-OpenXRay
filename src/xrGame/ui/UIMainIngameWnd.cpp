@@ -115,6 +115,7 @@ void CUIMainIngameWnd::Init()
     m_ind_bleeding = UIHelper::CreateStatic(uiXml, "indicator_bleeding", this, false);
     m_ind_radiation = UIHelper::CreateStatic(uiXml, "indicator_radiation", this, false);
     m_ind_starvation = UIHelper::CreateStatic(uiXml, "indicator_starvation", this, false);
+    m_ind_dehydration = UIHelper::CreateStatic(uiXml, "indicator_dehydration", this, false);
     m_ind_weapon_broken = UIHelper::CreateStatic(uiXml, "indicator_weapon_broken", this, false);
     m_ind_helmet_broken = UIHelper::CreateStatic(uiXml, "indicator_helmet_broken", this, false);
     m_ind_outfit_broken = UIHelper::CreateStatic(uiXml, "indicator_outfit_broken", this, false);
@@ -172,8 +173,7 @@ void CUIMainIngameWnd::Init()
         UIArtefactIcon->Show(false);
     }
 
-    const static shared_str warningStrings[7] = {"jammed", "radiation", "wounds", "starvation", "fatigue",
-        "invincible", "artefact"};
+    const static shared_str warningStrings[8] = {"jammed", "radiation", "wounds", "starvation", "fatigue", "invincible", "artefact", "dehydration"};
 
     // Загружаем пороговые значения для индикаторов
     EWarningIcons j = ewiWeaponJammed;
@@ -581,6 +581,14 @@ void CUIMainIngameWnd::UpdatePickUpItem()
     int m_iXPos = pSettings->r_u32(sect_name, "inv_grid_x");
     int m_iYPos = pSettings->r_u32(sect_name, "inv_grid_y");
 
+    if (pSettings->line_exist(sect_name.c_str(), "icons_texture"))
+    {
+        pcstr icons_texture = pSettings->r_string(sect_name.c_str(), "icons_texture");
+        UIPickUpItemIcon->SetShader(InventoryUtilities::GetCustomIconsShader(icons_texture));
+    }
+    else
+        UIPickUpItemIcon->SetShader(GetEquipmentIconsShader());
+
     float scale_x = m_iPickUpItemIconWidth / float(m_iGridWidth * INV_GRID_WIDTH);
 
     float scale_y = m_iPickUpItemIconHeight / float(m_iGridHeight * INV_GRID_HEIGHT);
@@ -728,6 +736,27 @@ void CUIMainIngameWnd::UpdateMainIndicators()
         }
     }
 
+    // Thirst icon
+    if (m_ind_dehydration)
+    {
+        const float thirst = pActor->conditions().GetThirst();
+        const float thirst_critical = pActor->conditions().ThirstCritical();
+        const float thirst_koef =
+            (thirst - thirst_critical) / (thirst >= thirst_critical ? 1 - thirst_critical : thirst_critical);
+        if (thirst_koef > 0.5)
+            m_ind_dehydration->Show(false);
+        else
+        {
+            m_ind_dehydration->Show(true);
+            if (thirst_koef > 0.0f)
+                m_ind_dehydration->InitTexture("ui_inGame2_circle_thirst_green");
+            else if (thirst_koef > -0.5f)
+                m_ind_dehydration->InitTexture("ui_inGame2_circle_thirst_yellow");
+            else
+                m_ind_dehydration->InitTexture("ui_inGame2_circle_thirst_red");
+        }
+    }
+
     // Armor broken icon
     if (m_ind_outfit_broken)
     {
@@ -851,7 +880,14 @@ void CUIMainIngameWnd::UpdateQuickSlots()
                 wnd->TextItemControl()->SetText(str);
                 wnd->Show(true);
 
-                slot->SetShader(InventoryUtilities::GetEquipmentIconsShader());
+                if (pSettings->line_exist(item_name.c_str(), "icons_texture"))
+                {
+                    pcstr icons_texture = pSettings->r_string(item_name.c_str(), "icons_texture");
+                    slot->SetShader(InventoryUtilities::GetCustomIconsShader(icons_texture));
+                }
+                else
+                    slot->SetShader(InventoryUtilities::GetEquipmentIconsShader());
+
                 Frect texture_rect;
                 texture_rect.x1 = pSettings->r_float(item_name, "inv_grid_x") * INV_GRID_WIDTH;
                 texture_rect.y1 = pSettings->r_float(item_name, "inv_grid_y") * INV_GRID_HEIGHT;

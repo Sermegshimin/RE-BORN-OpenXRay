@@ -35,6 +35,8 @@ class CWeapon;
 class CPhysicsShellHolder;
 class NET_Packet;
 class CEatableItem;
+class CGeneralMutantPartItem;
+class CEatableMutantPartItem;
 struct SPHNetState;
 struct net_update_IItem;
 
@@ -96,6 +98,10 @@ public:
 public:
     virtual void Load(LPCSTR section);
     void ReloadNames();
+    void UpdateInventoryInfo(pcstr phase);
+    void SetMode(u32 mode) { m_mode = mode; }
+
+    u32 GetMode() const { return m_mode; } 
 
     LPCSTR NameItem(); // remove <virtual> by sea
     LPCSTR NameShort();
@@ -155,6 +161,8 @@ public:
     shared_str m_nameShort;
     shared_str m_nameComplex;
     bool m_highlight_equipped;
+
+    u32 m_mode = 0;
 
     SInvItemPlace m_ItemCurrPlace;
 
@@ -269,6 +277,8 @@ public:
     virtual CAttachableItem* cast_attachable_item() { return this; }
     virtual CPhysicsShellHolder* cast_physics_shell_holder() { return 0; }
     virtual CEatableItem* cast_eatable_item() { return 0; }
+    virtual CEatableMutantPartItem* cast_eatable_mutant_part_item() { return 0; }
+    virtual CGeneralMutantPartItem* cast_general_mutant_part_item() { return 0; }
     virtual CWeapon* cast_weapon() { return 0; }
     virtual CFoodItem* cast_food_item() { return 0; }
     virtual CMissile* cast_missile() { return 0; }

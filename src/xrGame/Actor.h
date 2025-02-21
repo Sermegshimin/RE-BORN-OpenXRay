@@ -437,6 +437,7 @@ public:
 
     float m_fWalk_StrafeFactor;
     float m_fRun_StrafeFactor;
+    float m_fSprint_StrafeFactor;
 
 public:
     Fvector GetMovementSpeed() { return NET_SavedAccel; };
@@ -452,9 +453,9 @@ public:
     virtual void IR_OnKeyboardRelease(int dik);
     virtual void IR_OnKeyboardHold(int dik);
 
-    void IR_OnControllerPress(int dik, float x, float y) override;
-    void IR_OnControllerRelease(int dik, float x, float y) override;
-    void IR_OnControllerHold(int dik, float x, float y) override;
+    void IR_OnControllerPress(int dik, const ControllerAxisState& state) override;
+    void IR_OnControllerRelease(int dik, const ControllerAxisState& state) override;
+    void IR_OnControllerHold(int dik, const ControllerAxisState& state) override;
 
     void IR_OnControllerAttitudeChange(Fvector change) override;
 

@@ -37,6 +37,8 @@ ui_shader* g_OutfitUpgradeIconsShader = NULL;
 ui_shader* g_WeaponUpgradeIconsShader = NULL;
 //static CUIStatic* GetUIStatic();
 
+xr_map<pcstr, ui_shader*> g_CustomIconShaders;
+
 typedef std::pair<CHARACTER_RANK_VALUE, shared_str> CharInfoStringID;
 using CharInfoStrings = xr_map<CHARACTER_RANK_VALUE, shared_str>;
 
@@ -178,6 +180,25 @@ const ui_shader& InventoryUtilities::GetEquipmentIconsShader()
     }
 
     return *g_EquipmentIconsShader;
+}
+
+const ui_shader& InventoryUtilities::GetCustomIconsShader(pcstr name)
+{
+    auto it = g_CustomIconShaders.find(name);
+
+    if (it != g_CustomIconShaders.end())
+        return *(it)->second;
+
+    ui_shader* shader = xr_new<ui_shader>();
+    (*shader)->create("hud\\default", name);
+
+    std::pair<pcstr, ui_shader*> name_shader;
+    name_shader.first = name;
+    name_shader.second = shader;
+
+    g_CustomIconShaders.insert(name_shader);
+
+    return *shader;
 }
 
 const ui_shader& InventoryUtilities::GetMPCharIconsShader()

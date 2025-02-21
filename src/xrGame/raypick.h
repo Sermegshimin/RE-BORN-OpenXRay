@@ -10,6 +10,25 @@ struct script_rq_result
     float range;
     int element;
 
+    // Material of tri of ray query result
+    pcstr pMaterialName;
+    u32 pMaterialFlags;
+
+    // physics part
+    float fPHFriction; 
+    float fPHDamping; 
+    float fPHSpring; 
+    float fPHBounceStartVelocity; 
+    float fPHBouncing; 
+    float fFlotationFactor; 
+    float fShootFactor; 
+    float fShootFactorMP; 
+    float fBounceDamageFactor; 
+    float fInjuriousSpeed; 
+    float fVisTransparencyFactor; 
+    float fSndOcclusionFactor;
+    float fDensityFactor;
+
     script_rq_result()
     {
         O = nullptr;
@@ -27,6 +46,28 @@ struct script_rq_result
         }
         range = R.range;
         element = R.element;
+
+        // demonized: set material params of ray pick result
+        auto pTri = Level().ObjectSpace.GetStaticTris() + R.element;
+        auto pMaterial = GMLib.GetMaterialByIdx(pTri->material);
+        auto pMaterialFlagsRQ = pMaterial->Flags;
+  
+        pMaterialFlags = pMaterialFlagsRQ.flags;
+        pMaterialName = pMaterial->m_Name.c_str();
+
+        fPHFriction = pMaterial->fPHFriction;
+        fPHDamping = pMaterial->fPHDamping;
+        fPHSpring = pMaterial->fPHSpring;
+        fPHBounceStartVelocity = pMaterial->fPHBounceStartVelocity;
+        fPHBouncing = pMaterial->fPHBouncing;
+        fFlotationFactor = pMaterial->fFlotationFactor;
+        fShootFactor = pMaterial->fShootFactor;
+        fShootFactorMP = pMaterial->fShootFactorMP;
+        fBounceDamageFactor = pMaterial->fBounceDamageFactor;
+        fInjuriousSpeed = pMaterial->fInjuriousSpeed;
+        fVisTransparencyFactor = pMaterial->fVisTransparencyFactor;
+        fSndOcclusionFactor = pMaterial->fSndOcclusionFactor;
+        fDensityFactor = pMaterial->fDensityFactor;
     };
 };
 

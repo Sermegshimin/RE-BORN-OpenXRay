@@ -165,7 +165,7 @@ constexpr CLASS_ID CLSID_Z_CAMPFIRE                 = MK_CLSID('Z', '_', 'C', 'F
 
 // Detectors
 constexpr CLASS_ID CLSID_DETECTOR_SIMPLE            = MK_CLSID('D', '_', 'S', 'I', 'M', 'D', 'E', 'T');
-constexpr CLASS_ID CLSID_DETECTOR_VISUAL            = MK_CLSID('D','_','V','I','S','D','E','T');
+constexpr CLASS_ID CLSID_DETECTOR_VISUAL            = MK_CLSID('D', '_', 'V', 'I', 'S', 'D', 'E', 'T');
 constexpr CLASS_ID CLSID_DETECTOR_ADVANCED          = MK_CLSID('D', '_', 'A', 'D', 'V', 'A', 'N', 'C');
 constexpr CLASS_ID CLSID_DETECTOR_ELITE             = MK_CLSID('D', '_', 'E', 'L', 'I', 'T', 'E', ' ');
 constexpr CLASS_ID CLSID_DETECTOR_SCIENTIFIC        = MK_CLSID('D', '_', 'S', 'C', 'I', 'E', 'N', 'T');
@@ -184,6 +184,8 @@ constexpr CLASS_ID CLSID_IITEM_BOLT                 = MK_CLSID('I', 'I', '_', 'B
 constexpr CLASS_ID CLSID_IITEM_MEDKIT               = MK_CLSID('I', 'I', '_', 'M', 'E', 'D', 'K', 'I');
 constexpr CLASS_ID CLSID_IITEM_BANDAGE              = MK_CLSID('I', 'I', '_', 'B', 'A', 'N', 'D', 'G');
 constexpr CLASS_ID CLSID_IITEM_FOOD                 = MK_CLSID('I', 'I', '_', 'F', 'O', 'O', 'D', ' ');
+constexpr CLASS_ID CLSID_IITEM_MUTPART_E            = MK_CLSID('S', '_', 'M', 'U', 'T', 'P', '_', 'E');
+constexpr CLASS_ID CLSID_IITEM_MUTPART_G            = MK_CLSID('S', '_', 'M', 'U', 'T', 'P', '_', 'G');
 constexpr CLASS_ID CLSID_IITEM_BOTTLE               = MK_CLSID('I', 'I', '_', 'B', 'O', 'T', 'T', 'L');
 constexpr CLASS_ID CLSID_IITEM_ANTIRAD              = MK_CLSID('I', 'I', '_', 'A', 'N', 'T', 'I', 'R');
 constexpr CLASS_ID CLSID_IITEM_EXPLOSIVE            = MK_CLSID('I', 'I', '_', 'E', 'X', 'P', 'L', 'O');

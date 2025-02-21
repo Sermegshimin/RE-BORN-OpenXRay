@@ -145,6 +145,9 @@ enum EGameActions : u32
 
     kUI_MOVE_SECONDARY,
 
+    kUI_CLICK_1,
+    kUI_CLICK_2,
+
     kUI_ACCEPT,
     kUI_BACK,
     kUI_ACTION_1,
@@ -179,7 +182,6 @@ enum EGameActions : u32
     kPDA_MAP_SHOW_LEGEND,
 
     kPDA_FILTER_TOGGLE,
-    kPDA_TASKS_TOGGLE,
 
     // Talk:
     kTALK_SWITCH_TO_TRADE, // _OR_UPGRADE
