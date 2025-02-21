@@ -12,7 +12,7 @@
 
 **OpenXRay** is an improved version of the X-Ray Engine, the game engine used in the world-famous S.T.A.L.K.E.R. game series by GSC Game World.
 
-**OXR RE:Born** is a fork of the OpenXRay engine to add a few features for our revision of Call of Chernobyl.
+**OXR RE|Born** is a fork of the OpenXRay engine to add a few features for our revision of Call of Chernobyl.
 
 ## Goals
 1. Incorporate additional features as required by our revision of CoC, including features ported from other X-Ray engine branches
@@ -24,7 +24,7 @@ All contributions are more than welcomed. Join our Discord if you have any exper
 ### Community
 [Discord](https://discord.gg/8uteTKKEKp)
 
-If you have any issues, speak to us on the Discord. Don't not bother the OpenXRay developers unless you have made sure the bug appears in the [vanilla](https://github.com/OpenXRay/xray-16) version of the engine.
+If you have any issues, speak to us on the Discord. Do not bother the OpenXRay developers unless you have made sure the bug appears in the [vanilla](https://github.com/OpenXRay/xray-16) version of the engine.
 
 ### Funding
 Below are links to support the vanilla OpenXRay engine - Please support them, they are the beating heart that keeps the original S.T.A.L.K.E.R. alive!
