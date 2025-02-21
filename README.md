@@ -1,6 +1,6 @@
 <div align="center">
   <p>
-    <a href="https://github.com/OpenXRay">
+    <a href="[https://github.com/OpenXRay](https://github.com/Sermegshimin/RE-BORN-OpenXRay)">
       <img src="misc/media/OpenXRayCover.png" alt="Open for everyone" />
     </a>
   </p>
@@ -22,7 +22,7 @@
 All contributions are more than welcomed. Join our Discord if you have any experience in Stalker modding - there's a lot of work to be done, and we could always use a hand :)
 
 ### Community
-[![Discord](https://discord.gg/8uteTKKEKp)
+[Discord](https://discord.gg/8uteTKKEKp)
 
 If you have any issues, speak to us on the Discord. Don't not bother the OpenXRay developers unless you have made sure the bug appears in the [vanilla](https://github.com/OpenXRay/xray-16) version of the engine.
 
