@@ -7,83 +7,27 @@
 </div>
 
 <h1 align="center">
-  OpenXRay
+  OpenXRay: Reborn Fork
 </h1>
 
 **OpenXRay** is an improved version of the X-Ray Engine, the game engine used in the world-famous S.T.A.L.K.E.R. game series by GSC Game World.
 
+**OXR RE:Born** is a fork of the OpenXRay engine to add a few features for our revision of Call of Chernobyl.
+
 ## Goals
-1. Make it a drop-in replacement for original engine.
-    1. Aim at 99% compatibility and same behaviour, where possible.
-    2. Compile engine into a single executable file that you can just drop into `bin` folder. (see [#210](https://github.com/OpenXRay/xray-16/issues/210))
-2. Support all three games in the series: SOC/CS/COP. (see [Supported games](#supported-games) below)
-3. Fix original X-Ray Engine bugs that were polluting S.T.A.L.K.E.R. series.
-4. Introduce a solid platform for modmakers:
-    1. Add frame/render graph for those who want to add new graphics features.
-    2. Improve performance via refactoring the code, parallelizing the engine, making it multithreaded.
-    3. Add new scripting, development and debugging features.
-    4. New game SDK with new features.
-5. Clean up engine code, make it easily portable to new platforms, minimize platform-specific code.
-6. Enhance player's experience with new graphics, gameplay and other features that can be enabled optionally. (by default, we stay close to vanilla)
-
-## Main differences from original X-Ray are:
-- Support for 64-bit.
-- Support for ARM, ARM64, E2K (Elbrus 2000), PPC64LE.
-- Works on Linux, macOS, OSL (Elbrus OS).
-- New OpenGL renderer. (currently, requires OpenGL 4.1 minimum, lowering to at least OpenGL 3.3 is planned)
-- Improved performance, better FPS.
-- Original bugs fixes.
-- New features for modmakers.
-- Gamepad support. (not yet finished, but you can try already, see [#943](https://github.com/OpenXRay/xray-16/issues/943))
-- New game SDK being currently developed. (see [Game Editor](https://github.com/OpenXRay/xray-16/wiki/[EN]-Game-Editor))
-
-You can see the detailed differences table [here](https://github.com/OpenXRay/xray-16/wiki/%5BEN%5D-Differences-from-original-X‐Ray)
-
-## Supported games
-OpenXRay is based on X-Ray 1.6.02, used in S.T.A.L.K.E.R.: Call of Pripyat, so initially it supported only this game. <br>
-Currently, we are working on support for all three games in the series.
-|Call of Pripyat|Clear Sky|Shadow of Chernobyl|
-|---|---|---|
-|Yes|Release candidate (see [#382](https://github.com/OpenXRay/xray-16/issues/382)).<br>Minor bugs possible, but game is stable finishable.| **Not supported** yet (see [#392](https://github.com/OpenXRay/xray-16/issues/392))|
-
-## Documentation:
-Make sure to visit our [wiki](https://github.com/OpenXRay/xray-16/wiki).
-|How to|||
-|---|---|---|
-|Build and setup|[On Windows](https://github.com/OpenXRay/xray-16/wiki/%5BEN%5D-How-to-build-and-setup-on-Windows)|[On Linux](https://github.com/OpenXRay/xray-16/wiki/%5BEN%5D-How-to-build-and-setup-on-Linux)|
-|Install and play|[On Windows](https://github.com/OpenXRay/xray-16/wiki/%5BEN%5D-How-to-install-and-play)|-|
+1. Incorporate additional features as required by our revision of CoC, including features ported from other X-Ray engine branches
+2. Retain development parity with the vanilla OpenXRay engine. That means we try to not fall behind their development progress by continually pulling their changes.
 
 ## Contributing
-All contributions are more than welcomed. There are several ways how you can contribute:
+All contributions are more than welcomed. Join our Discord if you have any experience in Stalker modding - there's a lot of work to be done, and we could always use a hand :)
 
 ### Community
-[![Discord](https://img.shields.io/discord/410170555619082240?label=Discord)](https://discord.gg/sjRMQwv)
+[![Discord](https://discord.gg/8uteTKKEKp)
 
-Play and enjoy the game, [file an Issue](https://github.com/OpenXRay/xray-16/issues/new/choose) when you encounter any bugs, or you have an enhancement request.
-
-Join us on our [Discord](https://discord.gg/sjRMQwv), subscribe to our [YouTube channel](https://www.youtube.com/OpenXRay), join our [VK group](https://vk.com/openxray), leave a comment, put a like and communicate there! <br>
-Also you can put a star on this repository :)
-
-### Development
-[![GitHub Actions Build Status](https://github.com/OpenXRay/xray-16/actions/workflows/cibuild.yml/badge.svg)](https://github.com/OpenXRay/xray-16/actions/workflows/cibuild.yml)
-[![Contributors](https://img.shields.io/github/contributors/OpenXRay/xray-16.svg?label=Contributors)](https://github.com/OpenXRay/xray-16/graphs/contributors)
-
-Join our efforts in making our beloved game better, send pull requests, participate in discussions and code reviews!
-
-It is a place to share ideas on what to implement, gather people that want to work on the engine, and work on the source code. However, the following things should be taken into consideration:
-* We want to keep the game close to the vanilla, so if you want to introduce new gameplay features, make sure it is optional, and doesn't break compatibility with original game resources (i.e. everything in `gamedata` folder and `.db*`/`.xdb` archives). You also may want to add non-gameplay features, fix bugs, or improve engine performance and code quality.
-* Major changes should be discussed before implementation.
-
-Take a look at our [Issues](https://github.com/openxray/xray-16/issues) page:
-* See issues labeled as [good first issue](https://github.com/OpenXRay/xray-16/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22Good+first+issue%22) to get familiar with the engine code in practice.
-* You may also want to look at issues labeled as [help wanted](https://github.com/OpenXRay/xray-16/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3A%22Help+wanted%22). Some of them are difficult ones, though.
-
-The `dev` branch is the default and base branch for the project. It is used for development, and all pull requests should go there. But be aware that this branch sometimes may be broken, and we can only rarely do force pushes to this branch.
-
-Be advised that this is a community project not sanctioned by GSC Game World in any way – and they remain the copyright holders
-of all the original source code and S.T.A.L.K.E.R. franchise. However, they know about many community projects, including this, and support the S.T.A.L.K.E.R. community efforts to make the game better.
+If you have any issues, speak to us on the Discord. Don't not bother the OpenXRay developers unless you have made sure the bug appears in the [vanilla](https://github.com/OpenXRay/xray-16) version of the engine.
 
 ### Funding
+Below are links to support the vanilla OpenXRay engine - Please support them, they are the beating heart that keeps the original S.T.A.L.K.E.R. alive!
 [![Financial Contributors](https://opencollective.com/openxray/tiers/badge.svg?label=Financial%20contributors)](https://opencollective.com/openxray) [![Sponsors](https://img.shields.io/github/sponsors/openxray?color=brightgreen&label=Sponsors)](https://github.com/sponsors/OpenXRay) [![Patreon](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwww.patreon.com%2Fapi%2Fcampaigns%2F5950725&query=data.attributes.patron_count&suffix=%20Patrons&color=success&label=Patreon&style=flat)](https://patreon.com/openxray)
 
 You may provide financial support for this project by donating via different ways:
