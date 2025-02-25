@@ -14,6 +14,8 @@
 
 **OXR RE|Born** is a fork of the OpenXRay engine to add a few features for our revision of Call of Chernobyl.
 
+This is the engine fork repository, for the main gamedata repo check here: https://github.com/Sermegshimin/RE-BORN-MAIN   
+
 ## Goals
 1. Incorporate additional features as required by our revision of CoC, including features ported from other X-Ray engine branches
 2. Retain development parity with the vanilla OpenXRay engine. That means we try to not fall behind their development progress by continually pulling their changes.
