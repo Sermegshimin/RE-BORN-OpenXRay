@@ -2,6 +2,7 @@
 
 #include "xrEngine/x_ray.h"
 #include "xrGame/xrGame.h"
+#include "Include/xrRender/xrRender.h"
 
 #if defined(XR_PLATFORM_LINUX) || defined(XR_PLATFORM_BSD) || defined(XR_PLATFORM_APPLE)
 #include <unistd.h>
@@ -20,11 +21,19 @@ XR_EXPORT u32 NvOptimusEnablement = 0x00000001; // NVIDIA Optimus
 XR_EXPORT u32 AmdPowerXpressRequestHighPerformance = 0x00000001; // PowerXpress or Hybrid Graphics
 }
 
+RendererModule* s_render_modules[] =
+{
+#ifdef XR_PLATFORM_WINDOWS
+    xray::render::render_r4::GetRendererModule(),
+#endif
+    xray::render::render_gl::GetRendererModule(),
+};
+
 int entry_point(pcstr commandLine)
 {
     auto* game = strstr(commandLine, "-nogame") ? nullptr : &xrGame;
 
-    CApplication app{ commandLine, game };
+    CApplication app{ commandLine, game, s_render_modules };
 
     return app.Run();
 }

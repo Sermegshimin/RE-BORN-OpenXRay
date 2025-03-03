@@ -31,7 +31,7 @@
 
 #   define USE_BUG_TRAP
 #   ifdef USE_BUG_TRAP
-#       include <BugTrap/source/Client/BugTrap.h>
+#       include "BugTrap.h"
 #   endif
 
 #   include "Debug/dxerr.h"
