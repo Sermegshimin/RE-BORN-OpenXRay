@@ -226,11 +226,8 @@ void CTexture::apply_theora(CBackend& cmd_list, u32 dwStage)
         rect.top = 0;
         rect.right = pTheora->Width(true);
         rect.bottom = pTheora->Height(true);
-
-        u32 _w = pTheora->Width(false);
-
         R_CHK(HW.get_context(cmd_list.context_id)->Map(T2D, 0, D3D_MAP_WRITE_DISCARD, 0, &mapData));
-        R_ASSERT(mapData.RowPitch == int(pTheora->Width(false) * 4));
+        u32 _w = mapData.RowPitch / 4;
         int _pos = 0;
         pTheora->DecompressFrame((u32*)mapData.pData, _w - rect.right, _pos);
         VERIFY(u32(_pos) == rect.bottom * _w);
@@ -251,11 +248,23 @@ void CTexture::apply_avi(CBackend& cmd_list, u32 dwStage) const
         ID3DTexture2D* T2D = (ID3DTexture2D*)pSurface;
         D3D_MAPPED_TEXTURE2D mapData;
 
-        R_CHK(HW.get_context(CHW::IMM_CTX_ID)->Map(T2D, 0, D3D_MAP_WRITE_DISCARD, 0, &mapData));
-        R_ASSERT(mapData.RowPitch == int(pAVI->m_dwWidth * 4));
         u8* ptr{};
         pAVI->GetFrame(&ptr);
-        CopyMemory(mapData.pData, ptr, pAVI->m_dwWidth * pAVI->m_dwHeight * 4);
+
+        R_CHK(HW.get_context(CHW::IMM_CTX_ID)->Map(T2D, 0, D3D_MAP_WRITE_DISCARD, 0, &mapData));
+        size_t rowSize = size_t(pAVI->m_dwWidth) * 4;
+        if (mapData.RowPitch == rowSize)
+            CopyMemory(mapData.pData, ptr, rowSize * pAVI->m_dwHeight);
+        else
+        {
+            u8* destRow = static_cast<u8*>(mapData.pData);
+            for (u32 row = 0; row < pAVI->m_dwHeight; ++row)
+            {
+                CopyMemory(destRow, ptr, rowSize);
+                ptr += rowSize;
+                destRow += mapData.RowPitch;
+            }
+        }
         HW.get_context(CHW::IMM_CTX_ID)->Unmap(T2D, 0);
     }
     Apply(cmd_list, dwStage);
