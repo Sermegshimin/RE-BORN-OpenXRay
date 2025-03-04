@@ -186,17 +186,14 @@ void CTexture::Apply(CBackend& cmd_list, u32 dwStage) const
 
     if (dwStage < rstVertex) //	Pixel shader stage resources
     {
-        // HW.pDevice->PSSetShaderResources(dwStage, 1, &m_pSRView);
         cmd_list.SRVSManager.SetPSResource(dwStage, m_pSRView);
     }
     else if (dwStage < rstGeometry) //	Vertex shader stage resources
     {
-        // HW.pDevice->VSSetShaderResources(dwStage-rstVertex, 1, &m_pSRView);
         cmd_list.SRVSManager.SetVSResource(dwStage - rstVertex, m_pSRView);
     }
     else if (dwStage < rstHull) //	Geometry shader stage resources
     {
-        // HW.pDevice->GSSetShaderResources(dwStage-rstGeometry, 1, &m_pSRView);
         cmd_list.SRVSManager.SetGSResource(dwStage - rstGeometry, m_pSRView);
     }
     else if (dwStage < rstDomain) //	Geometry shader stage resources
@@ -232,29 +229,20 @@ void CTexture::apply_theora(CBackend& cmd_list, u32 dwStage)
 
         u32 _w = pTheora->Width(false);
 
-// R_CHK				(T2D->LockRect(0,&R,&rect,0));
-#ifdef USE_DX11
         R_CHK(HW.get_context(cmd_list.context_id)->Map(T2D, 0, D3D_MAP_WRITE_DISCARD, 0, &mapData));
-#else
-        R_CHK(T2D->Map(0, D3D_MAP_WRITE_DISCARD, 0, &mapData));
-#endif
-        // R_ASSERT			(R.Pitch == int(pTheora->Width(false)*4));
         R_ASSERT(mapData.RowPitch == int(pTheora->Width(false) * 4));
         int _pos = 0;
         pTheora->DecompressFrame((u32*)mapData.pData, _w - rect.right, _pos);
         VERIFY(u32(_pos) == rect.bottom * _w);
-// R_CHK				(T2D->UnlockRect(0));
-#ifdef USE_DX11
+
         HW.get_context(cmd_list.context_id)->Unmap(T2D, 0);
-#else
-        T2D->Unmap(0);
-#endif
     }
     Apply(cmd_list, dwStage);
-    // CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
-};
+}
+
 void CTexture::apply_avi(CBackend& cmd_list, u32 dwStage) const
 {
+    // AVI
     if (pAVI->NeedUpdate())
     {
         D3D_RESOURCE_DIMENSION type;
@@ -263,27 +251,16 @@ void CTexture::apply_avi(CBackend& cmd_list, u32 dwStage) const
         ID3DTexture2D* T2D = (ID3DTexture2D*)pSurface;
         D3D_MAPPED_TEXTURE2D mapData;
 
-// AVI
-// R_CHK	(T2D->LockRect(0,&R,NULL,0));
-#ifdef USE_DX11
         R_CHK(HW.get_context(CHW::IMM_CTX_ID)->Map(T2D, 0, D3D_MAP_WRITE_DISCARD, 0, &mapData));
-#else
-        R_CHK(T2D->Map(0, D3D_MAP_WRITE_DISCARD, 0, &mapData));
-#endif
         R_ASSERT(mapData.RowPitch == int(pAVI->m_dwWidth * 4));
         u8* ptr{};
         pAVI->GetFrame(&ptr);
         CopyMemory(mapData.pData, ptr, pAVI->m_dwWidth * pAVI->m_dwHeight * 4);
-// R_CHK	(T2D->UnlockRect(0));
-#ifdef USE_DX11
         HW.get_context(CHW::IMM_CTX_ID)->Unmap(T2D, 0);
-#else
-        T2D->Unmap(0);
-#endif
     }
-    // CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
     Apply(cmd_list, dwStage);
-};
+}
+
 void CTexture::apply_seq(CBackend& cmd_list, u32 dwStage)
 {
     // SEQ
@@ -303,14 +280,13 @@ void CTexture::apply_seq(CBackend& cmd_list, u32 dwStage)
         pSurface = seqDATA[frame_id];
         m_pSRView = m_seqSRView[frame_id];
     }
-    // CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
     Apply(cmd_list, dwStage);
-};
+}
+
 void CTexture::apply_normal(CBackend& cmd_list, u32 dwStage) const
 {
-    // CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
     Apply(cmd_list, dwStage);
-};
+}
 
 void CTexture::set_slice(int slice)
 {
@@ -372,8 +348,6 @@ void CTexture::Load()
             u32 _w = pTheora->Width(false);
             u32 _h = pTheora->Height(false);
 
-            //			HRESULT hrr = HW.pDevice->CreateTexture(
-            //				_w, _h, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &pTexture, NULL );
             D3D_TEXTURE2D_DESC desc;
             desc.Width = _w;
             desc.Height = _h;
@@ -419,10 +393,6 @@ void CTexture::Load()
 
             // Now create texture
             ID3DTexture2D* pTexture = 0;
-            // HRESULT hrr = HW.pDevice->CreateTexture(
-            // pAVI->m_dwWidth,pAVI->m_dwHeight,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,
-            //	&pTexture,NULL
-            //	);
             D3D_TEXTURE2D_DESC desc;
             desc.Width = pAVI->m_dwWidth;
             desc.Height = pAVI->m_dwHeight;
@@ -479,7 +449,6 @@ void CTexture::Load()
                 pSurface = RImplementation.texture_load(buffer, mem);
                 if (pSurface)
                 {
-                    // pSurface->SetPriority	(PRIORITY_LOW);
                     seqDATA.push_back(pSurface);
                     m_seqSRView.push_back(0);
                     HW.pDevice->CreateShaderResourceView(seqDATA.back(), NULL, &m_seqSRView.back());
@@ -499,7 +468,6 @@ void CTexture::Load()
         // Calc memory usage and preload into vid-mem
         if (pSurface)
         {
-            // pSurface->SetPriority	(PRIORITY_NORMAL);
             flags.MemoryUsage = mem;
             CHK_DX(HW.pDevice->CreateShaderResourceView(pSurface, NULL, &m_pSRView));
         }
@@ -523,8 +491,6 @@ void CTexture::Unload()
     xr_sprintf(msg_buff, sizeof(msg_buff), "* Unloading texture [%s] pSurface RefCount =", cName.c_str());
     _SHOW_REF(msg_buff, pSurface);
 #endif // DEBUG
-
-    //.	if (flags.bLoaded)		Msg		("* Unloaded: %s",cName.c_str());
 
     flags.bLoaded = FALSE;
     if (!seqDATA.empty())
