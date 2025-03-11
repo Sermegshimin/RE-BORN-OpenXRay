@@ -2229,6 +2229,7 @@
     </Filter>
     <Filter Include="Core\Client\Objects\inventory\MutantPartItem">
       <UniqueIdentifier>{bdf20287-09cf-4f72-9a2e-3d9d4051cc0b}</UniqueIdentifier>
+	</Filter>
     <Filter Include="Core\Server\ServerEntities\scripts">
       <UniqueIdentifier>{680ffaa3-1f14-47a9-a263-58e2f92d6da1}</UniqueIdentifier>
     </Filter>
@@ -6330,6 +6331,7 @@
     </ClInclude>
     <ClInclude Include="mutant_part_item.h">
       <Filter>Core\Client\Objects\inventory\MutantPartItem</Filter>
+	</ClInclude>
     <ClInclude Include="..\xrServerEntities\script_value.h">
       <Filter>Core\Server\ServerEntities\scripts\script_value</Filter>
     </ClInclude>
@@ -9567,6 +9569,7 @@
     </ClCompile>
     <ClCompile Include="mutant_part_item.cpp">
       <Filter>Core\Client\Objects\inventory\MutantPartItem</Filter>
+	</ClCompile>
     <ClCompile Include="..\xrServerEntities\script_properties_list_helper.cpp">
       <Filter>Core\Server\ServerEntities\scripts\script_properties_list_helper</Filter>
     </ClCompile>
