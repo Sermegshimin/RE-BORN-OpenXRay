@@ -29,8 +29,23 @@ RendererModule* s_render_modules[] =
     xray::render::render_gl::GetRendererModule(),
 };
 
+struct tracy_raii
+{
+    ~tracy_raii()
+    {
+#ifdef TRACY_ENABLE
+        tracy::GetProfiler().RequestShutdown();
+        while (!tracy::GetProfiler().HasShutdownFinished())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+#endif
+    }
+};
+
 int entry_point(pcstr commandLine)
 {
+    tracy_raii raii;
     auto* game = strstr(commandLine, "-nogame") ? nullptr : &xrGame;
 
     CApplication app{ commandLine, game, s_render_modules };
